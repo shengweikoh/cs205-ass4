@@ -1,7 +1,12 @@
 package com.example.cs205_ass4.game.chef
 
+enum class ChefState {
+    IDLE, COOKING
+}
+
 data class Chef(
     val id: Int,
-    val xPosition: Float,  
-    val yPosition: Float
-) 
+    var xPosition: Float,
+    var yPosition: Float,
+    var chefState: ChefState = ChefState.IDLE
+)

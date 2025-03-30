@@ -8,44 +8,53 @@
     tools:context=".MainActivity">
 
     <ImageView
-        android:id="@+id/imageView3"
+        android:id="@+id/imageViewChef1"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:layout_marginStart="60dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginStart="108dp"
+        android:layout_marginTop="72dp"
         android:scaleType="fitCenter"
         android:src="@drawable/chef"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:id="@+id/imageView2"
+        android:id="@+id/imageViewChef2"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:layout_marginStart="80dp"
+        android:layout_marginStart="76dp"
         android:scaleType="fitCenter"
         android:src="@drawable/chef"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView3"
-        app:layout_constraintStart_toEndOf="@id/imageView3"
-        app:layout_constraintTop_toTopOf="@id/imageView3"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintBottom_toBottomOf="@+id/imageViewChef1"
+        app:layout_constraintStart_toEndOf="@id/imageViewChef1"
+        app:layout_constraintTop_toTopOf="@id/imageViewChef1"
+        app:layout_constraintVertical_bias="1.0" />
 
     <TextView
-        android:id="@+id/textView3"
+        android:id="@+id/textViewChef1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Chef 2"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView2"
-        app:layout_constraintEnd_toEndOf="@+id/imageView2"
+        app:layout_constraintBottom_toBottomOf="@+id/imageViewChef1"
+        app:layout_constraintEnd_toEndOf="@+id/imageViewChef1"
         app:layout_constraintHorizontal_bias="0.505"
-        app:layout_constraintStart_toStartOf="@+id/imageView2" />
+        app:layout_constraintStart_toStartOf="@+id/imageViewChef1" />
 
     <TextView
-        android:id="@+id/textView5"
+        android:id="@+id/textViewChef2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Chef 1"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView3"
-        app:layout_constraintEnd_toEndOf="@+id/imageView3"
-        app:layout_constraintStart_toStartOf="@+id/imageView3" />
+        app:layout_constraintBottom_toBottomOf="@+id/imageViewChef2"
+        app:layout_constraintEnd_toEndOf="@+id/imageViewChef2"
+        app:layout_constraintStart_toStartOf="@+id/imageViewChef2" />
+
+    <FrameLayout
+        android:id="@+id/burgerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+    </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
