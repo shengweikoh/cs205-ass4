@@ -27,8 +27,37 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         // Bind the container where burgers will be added.
         burgerContainer = activity.findViewById(R.id.burgerContainer)
 
+        // Register for burger expiration callbacks
+        // Currently, we are using event-based callbacks to remove expired burgers
+        // Meaning game engine will call game renderer remove expired burgers method when burgers expire
+        // Might want to use a timer-based approach for future extension if required
+        gameEngine.setOnBurgersExpiredCallback(::removeExpiredBurgerViews)
+        
+        // Start the game engine
+        gameEngine.startGame()
+
         // Start scheduling burger spawns.
         scheduleBurgerSpawn()
+    }
+
+    // Removes burger views that have expired
+    private fun removeExpiredBurgerViews(expiredBurgerIds: List<Int>) {
+        // Create an empty list 
+        val viewsToRemove = mutableListOf<View>()
+        
+        // Add all views that need to be removed
+        for (i in 0 until burgerContainer.childCount) {
+            val view = burgerContainer.getChildAt(i)
+            val burgerId = view.tag as? Int
+            if (burgerId != null && expiredBurgerIds.contains(burgerId)) {
+                viewsToRemove.add(view)
+            }
+        }
+        
+        // Remove all identified views
+        viewsToRemove.forEach { view ->
+            burgerContainer.removeView(view)
+        }
     }
 
     // Schedule burger spawns every 5 seconds.
