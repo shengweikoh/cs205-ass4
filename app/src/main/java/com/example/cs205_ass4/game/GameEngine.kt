@@ -21,6 +21,7 @@ class GameEngine {
     // Called to start game loops, timers, etc.
     fun startGame() {
         // TODO: Implement game loop logic or timer events
+        
     }
 
     // Called on each game tick/update

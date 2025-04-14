@@ -7,4 +7,6 @@ object BurgerConstants {
     const val LEFT_MARGIN = 100f
     const val NUM_BURGERS_PER_ROW = 10
     const val SPACING_BETWEEN_ROWS = 100f
+
+    const val BURGER_EXPIRATION_TIME = 10000
 } 

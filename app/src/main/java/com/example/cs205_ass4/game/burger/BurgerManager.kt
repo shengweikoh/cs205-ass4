@@ -13,5 +13,12 @@ class BurgerManager {
 
     fun updateBurgers() {
         // TODO: Update burger logic (e.g., cooking timers, quality checks)
+        // remove expired burgers
+        val expiredBurgerIds = getExpiredBurgerIds()
+        burgers.removeAll { burger -> expiredBurgerIds.contains(burger.id) }
+    }
+
+    fun getExpiredBurgerIds(): List<Int> {
+        return burgers.filter { it.isExpired() }.map { it.id }
     }
 }
