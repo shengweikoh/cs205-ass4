@@ -11,9 +11,13 @@ class BurgerManager {
         return burgers.find { it.id == id }
     }
 
+    // New: Mark the burger as cooking so it is not eligible for expiration.
+    fun markBurgerAsCooking(burgerId: Int) {
+        getBurgerById(burgerId)?.isCooking = true
+    }
+
     fun updateBurgers() {
-        // TODO: Update burger logic (e.g., cooking timers, quality checks)
-        // remove expired burgers
+        // Remove expired burgers (only those that are not cooking will ever be expired)
         val expiredBurgerIds = getExpiredBurgerIds()
         burgers.removeAll { burger -> expiredBurgerIds.contains(burger.id) }
     }

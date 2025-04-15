@@ -1,9 +1,10 @@
 package com.example.cs205_ass4.game
 
 import android.app.Activity
+import android.graphics.Rect
 import android.os.Handler
 import android.os.Looper
-import android.view.DragEvent
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
@@ -18,7 +19,6 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
 
     private lateinit var chefImageList: List<ImageView>
     private lateinit var burgerContainer: FrameLayout
-    // NEW: Bind the expired burger counter TextView.
     private lateinit var burgerExpiredTextView: TextView
     private lateinit var burgerCounterTextView: TextView
 
@@ -95,10 +95,10 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     private fun spawnBurgerView() {
         val burgerId = gameEngine.spawnBurger()
         val burgerView = ImageView(activity).apply {
-            setImageResource(R.drawable.burger_order)
+            setImageResource(R.drawable.burger_order)  // Initial static image.
             tag = burgerId
             layoutParams = FrameLayout.LayoutParams(150, 150).apply {
-                gravity = android.view.Gravity.CENTER
+                gravity = Gravity.CENTER
             }
         }
 
@@ -124,18 +124,16 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
                             val chefId = overlappedChef.tag as? Int
                             val burgerId = view.tag as? Int
                             if (chefId != null && burgerId != null) {
-                                // Check if the chef is available.
                                 if (gameEngine.getChefState(chefId) == ChefState.IDLE) {
-                                    // Chef is free: start cooking and remove the burger view.
+                                    // Assign the burger to the chef.
                                     gameEngine.startCookingBurger(chefId, burgerId)
-                                    burgerContainer.removeView(view)
+                                    // Start the layering animation and pass the chefId.
+                                    animateBurgerLayering(view as ImageView, chefId)
                                     updateChefImage(overlappedChef, chefId)
                                 } else {
-                                    // Chef is busy: notify the player and do not remove the burger.
                                     Toast.makeText(activity,
                                         "Chef $chefId is busy. Please drop the burger on another chef!",
                                         Toast.LENGTH_SHORT).show()
-                                    // Optionally, animate the burger view to snap back or reset its position.
                                 }
                             }
                         }
@@ -147,6 +145,42 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         })
 
         burgerContainer.addView(burgerView)
+    }
+
+    /**
+     * Animates the burger layering process.
+     * Displays the layers in order: bottom -> tomato -> patty -> lettuce -> top.
+     * Once complete, removes the burger view and notifies the GameEngine to mark the burger as cooked.
+     */
+    private fun animateBurgerLayering(burgerView: ImageView, chefId: Int) {
+        // List of drawable resources for each layer.
+        val layerImages = listOf(
+            R.drawable.burger_bottom,  // Ensure this resource exists.
+            R.drawable.burger_tomato,  // Ensure this resource exists.
+            R.drawable.burger_patty,   // Ensure this resource exists.
+            R.drawable.burger_lettuce, // Ensure this resource exists.
+            R.drawable.burger_top      // Ensure this resource exists.
+        )
+        val layerDelayMillis = 1000L  // 1 second per layer.
+        var currentLayerIndex = 0
+
+        // Use a separate Handler for the layering animation.
+        val layeringHandler = Handler(Looper.getMainLooper())
+        val layeringRunnable = object : Runnable {
+            override fun run() {
+                if (currentLayerIndex < layerImages.size) {
+                    burgerView.setImageResource(layerImages[currentLayerIndex])
+                    currentLayerIndex++
+                    layeringHandler.postDelayed(this, layerDelayMillis)
+                } else {
+                    // Animation complete; remove the burger view.
+                    burgerContainer.removeView(burgerView)
+                    // Notify the game engine that cooking is complete.
+                    gameEngine.completeBurgerCooking(chefId)
+                }
+            }
+        }
+        layeringHandler.post(layeringRunnable)
     }
 
     private fun findOverlappedChef(burgerView: View): ImageView? {

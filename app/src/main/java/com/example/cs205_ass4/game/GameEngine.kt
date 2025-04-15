@@ -15,7 +15,7 @@ class GameEngine {
     var burgerCounter = 0
     // Counter for burgers that have finished cooking.
     var cookedBurgerCounter = 0
-    // New counter for burgers that have expired.
+    // Counter for burgers that have expired.
     var expiredBurgerCounter = 0
 
     // Handler for the game loop and delayed tasks.
@@ -26,9 +26,9 @@ class GameEngine {
     private var onBurgersExpiredCallback: ((List<Int>) -> Unit)? = null
     // Callback for when a burger has finished cooking.
     private var onBurgerCookedCallback: ((Int) -> Unit)? = null
-    // Callback for notifying when a chef's state changes (e.g. idle or cooking).
+    // Callback for notifying when a chef's state changes.
     private var onChefStateChangedCallback: ((Int, ChefState) -> Unit)? = null
-    // NEW: Callback for when the expired burger counter changes.
+    // Callback for when the expired burger counter changes.
     private var onBurgerExpiredCountChangedCallback: ((Int) -> Unit)? = null
 
     init {
@@ -84,7 +84,7 @@ class GameEngine {
         onChefStateChangedCallback = callback
     }
 
-    // NEW: Callback setter for expired burger count changes.
+    // Callback setter for expired burger count changes.
     fun setOnBurgerExpiredCountChangedCallback(callback: (Int) -> Unit) {
         onBurgerExpiredCountChangedCallback = callback
     }
@@ -97,31 +97,41 @@ class GameEngine {
         chefManager.toggleChef(chefId)
     }
 
-    // When a burger is assigned for cooking, it cooks for 5 seconds.
+    /**
+     * Starts cooking a burger by assigning it to a chef and setting the chef state to COOKING.
+     * The chef remains in the COOKING state until the cooking process completes (i.e. after layering).
+     */
     fun startCookingBurger(chefId: Int, burgerId: Int) {
         // Check if the chef is available (IDLE) before starting to cook.
         val chef = chefManager.getChefById(chefId)
         if (chef == null || chef.chefState != ChefState.IDLE) {
             // The chef is already busy or doesn't exist.
-            // Optionally, you can notify the player (for example, via a Toast).
             return
         }
 
-        // Now assign the burger for cooking.
+        // Assign the burger to the chef.
         chefManager.assignBurgerToChef(chefId, burgerId)
 
-        // Immediately update the UI to reflect that the chef is cooking.
+        // Mark the burger as cooking so it won’t expire.
+        burgerManager.markBurgerAsCooking(burgerId)
+
+        // Update the UI to reflect that the chef is now cooking.
         onChefStateChangedCallback?.invoke(chefId, ChefState.COOKING)
 
-        // Schedule the chef to finish cooking after 5 seconds.
-        handler.postDelayed({
-            // Chef finishes cooking – return to IDLE.
-            chefManager.finishCooking(chefId)
-            cookedBurgerCounter++
-            onBurgerCookedCallback?.invoke(cookedBurgerCounter)
-            // Update the UI to reflect that the chef is now idle.
-            onChefStateChangedCallback?.invoke(chefId, ChefState.IDLE)
-        }, 5000)
+        // Note: Cooking completion will now be triggered externally via the UI
+        // (after the layering animation finishes).
+    }
+
+    /**
+     * Called when the burger's layering animation has completed.
+     * This method marks the cooking as complete by updating the chef's state,
+     * incrementing the cooked burger counter, and triggering the corresponding callbacks.
+     */
+    fun completeBurgerCooking(chefId: Int) {
+        chefManager.finishCooking(chefId)
+        cookedBurgerCounter++
+        onBurgerCookedCallback?.invoke(cookedBurgerCounter)
+        onChefStateChangedCallback?.invoke(chefId, ChefState.IDLE)
     }
 
     fun spawnBurger(): Int {
