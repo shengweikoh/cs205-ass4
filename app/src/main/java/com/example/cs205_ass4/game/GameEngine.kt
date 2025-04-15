@@ -28,11 +28,6 @@ class GameEngine {
     private var onBurgersExpiredCallback: ((List<Int>) -> Unit)? = null
 
     init {
-        // Initialize chefs
-        repeat(4) { chefId ->
-            chefManager.spawnChef(id = chefId + 1, x = 100f + (chefId * 150f), y = 200f)
-        }
-
         // Set up order expiration callback
         kitchenManager.setOnOrdersExpiredCallback { expiredOrderIds ->
             onBurgersExpiredCallback?.invoke(expiredOrderIds)
