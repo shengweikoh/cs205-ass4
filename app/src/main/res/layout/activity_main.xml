@@ -7,47 +7,126 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+
+    <!-- Cooked Burger Counter (top right) -->
+    <TextView
+        android:id="@+id/textViewBurgerCounter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Burgers Cooked: 0"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Expired Burger Counter (top left) -->
+    <TextView
+        android:id="@+id/textViewBurgerExpired"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Burgers Expired: 0"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <!-- Chef 1 -->
     <ImageView
         android:id="@+id/imageViewChef1"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:layout_marginStart="108dp"
+        android:src="@drawable/chef_idle"
+        android:scaleType="fitCenter"
         android:layout_marginTop="72dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/chef"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toStartOf="@id/imageViewChef2"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHorizontal_chainStyle="spread" />
 
-    <ImageView
-        android:id="@+id/imageViewChef2"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginStart="76dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/chef"
-        app:layout_constraintBottom_toBottomOf="@+id/imageViewChef1"
-        app:layout_constraintStart_toEndOf="@id/imageViewChef1"
-        app:layout_constraintTop_toTopOf="@id/imageViewChef1"
-        app:layout_constraintVertical_bias="1.0" />
-
+    <!-- Label for Chef 1 -->
     <TextView
         android:id="@+id/textViewChef1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Chef 2"
-        app:layout_constraintBottom_toBottomOf="@+id/imageViewChef1"
-        app:layout_constraintEnd_toEndOf="@+id/imageViewChef1"
-        app:layout_constraintHorizontal_bias="0.505"
-        app:layout_constraintStart_toStartOf="@+id/imageViewChef1" />
+        android:text="Chef 1"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/imageViewChef1"
+        app:layout_constraintStart_toStartOf="@id/imageViewChef1"
+        app:layout_constraintEnd_toEndOf="@id/imageViewChef1" />
 
+    <!-- Chef 2 -->
+    <ImageView
+        android:id="@+id/imageViewChef2"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/chef_idle"
+        android:scaleType="fitCenter"
+        android:layout_marginTop="72dp"
+        app:layout_constraintStart_toEndOf="@id/imageViewChef1"
+        app:layout_constraintEnd_toStartOf="@id/imageViewChef3"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Label for Chef 2 -->
     <TextView
         android:id="@+id/textViewChef2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Chef 1"
-        app:layout_constraintBottom_toBottomOf="@+id/imageViewChef2"
-        app:layout_constraintEnd_toEndOf="@+id/imageViewChef2"
-        app:layout_constraintStart_toStartOf="@+id/imageViewChef2" />
+        android:text="Chef 2"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/imageViewChef2"
+        app:layout_constraintStart_toStartOf="@id/imageViewChef2"
+        app:layout_constraintEnd_toEndOf="@id/imageViewChef2" />
+
+    <!-- Chef 3 -->
+    <ImageView
+        android:id="@+id/imageViewChef3"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/chef_idle"
+        android:scaleType="fitCenter"
+        android:layout_marginTop="72dp"
+        app:layout_constraintStart_toEndOf="@id/imageViewChef2"
+        app:layout_constraintEnd_toStartOf="@id/imageViewChef4"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Label for Chef 3 -->
+    <TextView
+        android:id="@+id/textViewChef3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Chef 3"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/imageViewChef3"
+        app:layout_constraintStart_toStartOf="@id/imageViewChef3"
+        app:layout_constraintEnd_toEndOf="@id/imageViewChef3" />
+
+    <!-- Chef 4 -->
+    <ImageView
+        android:id="@+id/imageViewChef4"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/chef_idle"
+        android:scaleType="fitCenter"
+        android:layout_marginTop="72dp"
+        app:layout_constraintStart_toEndOf="@id/imageViewChef3"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Label for Chef 4 -->
+    <TextView
+        android:id="@+id/textViewChef4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Chef 4"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/imageViewChef4"
+        app:layout_constraintStart_toStartOf="@id/imageViewChef4"
+        app:layout_constraintEnd_toEndOf="@id/imageViewChef4" />
 
     <FrameLayout
         android:id="@+id/burgerContainer"
