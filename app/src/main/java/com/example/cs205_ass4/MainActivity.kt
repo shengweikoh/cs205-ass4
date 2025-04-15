@@ -8,24 +8,6 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.cs205_ass4.game.GameEngine
 import com.example.cs205_ass4.game.GameRenderer
 
-// class MainActivity : ComponentActivity() {
-//     override fun onCreate(savedInstanceState: Bundle?) {
-//         super.onCreate(savedInstanceState)
-//         enableEdgeToEdge()
-//         setContent {
-//             Cs205ass4Theme {
-//                 Surface(
-//                     modifier = Modifier.fillMaxSize(),
-//                     color = MaterialTheme.colorScheme.background
-//                 ) {
-//                     GameScreen()
-//                 }
-//             }
-//         }
-//     }
-// }
-
-
 class MainActivity : AppCompatActivity() {
     private lateinit var gameEngine: GameEngine
     private lateinit var gameRenderer: GameRenderer
@@ -45,9 +27,11 @@ class MainActivity : AppCompatActivity() {
             )
             insets
         }
-
+        
+        // Initialize game components
         gameEngine = GameEngine()
         gameRenderer = GameRenderer(this, gameEngine)
         gameRenderer.setupUI()
     }
+
 }

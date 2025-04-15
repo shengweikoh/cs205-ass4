@@ -4,13 +4,17 @@ import android.os.Handler
 import android.os.Looper
 import com.example.cs205_ass4.game.chef.ChefManager
 import com.example.cs205_ass4.game.burger.BurgerManager
+import com.example.cs205_ass4.game.kitchen.KitchenManager
+import com.example.cs205_ass4.game.kitchen.Order
 import com.example.cs205_ass4.game.chef.ChefState
+import kotlin.concurrent.thread
 
 class GameEngine {
 
     // Managers for different game entities
     val chefManager = ChefManager()
     val burgerManager = BurgerManager()
+    val kitchenManager = KitchenManager()
 
     var burgerCounter = 0
     
@@ -24,9 +28,15 @@ class GameEngine {
     private var onBurgersExpiredCallback: ((List<Int>) -> Unit)? = null
 
     init {
-        // Spawn initial game entities
-//        chefManager.spawnChef(id = 1, x = 100f, y = 200f)
-//        burgerManager.spawnBurger(id = 1, x = 150f, y = 250f)
+        // Initialize chefs
+        repeat(4) { chefId ->
+            chefManager.spawnChef(id = chefId + 1, x = 100f + (chefId * 150f), y = 200f)
+        }
+
+        // Set up order expiration callback
+        kitchenManager.setOnOrdersExpiredCallback { expiredOrderIds ->
+            onBurgersExpiredCallback?.invoke(expiredOrderIds)
+        }
     }
 
     // Called to start game loops, timers, etc.
@@ -78,7 +88,14 @@ class GameEngine {
 
     fun spawnBurger(): Int {
         burgerCounter++
-        burgerManager.spawnBurger(burgerCounter, 0f, 0f)
+        val order = Order(burgerCounter, "burger")
+        if (kitchenManager.addOrder(order)) {
+            burgerManager.spawnBurger(burgerCounter, 0f, 0f)
+        }
         return burgerCounter
+    }
+
+    fun stopGame() {
+        kitchenManager.stop()
     }
 }
