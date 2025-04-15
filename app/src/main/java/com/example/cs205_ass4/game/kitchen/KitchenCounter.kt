@@ -28,7 +28,12 @@ class KitchenCounter(
     init {
         // Start decay thread
         thread {
+            var lastUpdateTime = System.nanoTime()
+            val targetDelta = (1000_000_000 / 30).toLong() // 30 FPS in nanoseconds
+            
             while (isRunning) {
+                val currentTime = System.nanoTime()
+                
                 synchronized(lock) {
                     val expiredOrders = mutableListOf<Int>()
                     orders.forEach { order ->
@@ -44,7 +49,15 @@ class KitchenCounter(
                         onOrdersExpiredCallback?.invoke(expiredOrders)
                     }
                 }
-                Thread.sleep(16) // ~60fps update rate
+                
+                val updateDuration = System.nanoTime() - currentTime
+                val sleepTime = (targetDelta - updateDuration) / 1_000_000 // Convert to milliseconds
+                
+                if (sleepTime > 0) {
+                    Thread.sleep(sleepTime)
+                }
+                
+                lastUpdateTime = currentTime
             }
         }
     }
