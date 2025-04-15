@@ -29,7 +29,7 @@ class KitchenCounter(
         // Start decay thread
         thread {
             var lastUpdateTime = System.nanoTime()
-            val targetDelta = (1000_000_000 / 30).toLong() // 30 FPS in nanoseconds
+            val targetDelta = (1000_000_000 / 60).toLong() // 60 FPS in nanoseconds
             
             while (isRunning) {
                 val currentTime = System.nanoTime()
