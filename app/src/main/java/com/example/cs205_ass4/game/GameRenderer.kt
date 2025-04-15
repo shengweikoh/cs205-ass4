@@ -13,7 +13,8 @@ import android.graphics.PointF
 import android.graphics.Rect
 import com.example.cs205_ass4.R
 import com.example.cs205_ass4.game.kitchen.KitchenConstants
-
+import com.example.cs205_ass4.game.chef.ChefConstants
+import com.example.cs205_ass4.game.burger.BurgerConstants
 class GameRenderer(private val activity: Activity, private val gameEngine: GameEngine) {
     private lateinit var chefImage: ImageView
     private lateinit var chefImage2: ImageView
@@ -74,8 +75,8 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         chefImage2 = activity.findViewById(R.id.imageViewChef2)
 
         // Elevation so they appear above most things but below dragged burgers
-        chefImage.elevation = 2f
-        chefImage2.elevation = 2f
+        chefImage.elevation = ChefConstants.CHEF_ELEVATION
+        chefImage2.elevation = ChefConstants.CHEF_ELEVATION
 
         burgerContainer = activity.findViewById(R.id.burgerContainer)
         kitchenCounter = activity.findViewById(R.id.kitchenCounter)
@@ -90,8 +91,6 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
             removeExpiredBurgerViews(expiredBurgerIds)
         }
 
-//        gameEngine.startGame()
-//        scheduleBurgerSpawn()
     }
 
     private fun setupGridPositions() {
@@ -168,7 +167,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
             if (gridIndex != -1) {
                 setTag(R.id.grid_index_tag, gridIndex)
             }
-            elevation = 3f // Make sure it's above chef visually
+            elevation = BurgerConstants.BURGER_ELEVATION // make sure it's above chefs
         }
 
         val burgerView = ImageView(activity).apply {

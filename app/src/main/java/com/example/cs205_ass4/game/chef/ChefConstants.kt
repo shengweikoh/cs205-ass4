@@ -6,4 +6,5 @@ object ChefConstants {
     // This is the margin from the top of the screen to the centre of chefs
     const val TOP_MARGIN = 500f
     const val LEFT_RIGHT_MARGIN = 50f
+    const val CHEF_ELEVATION = 2f // below the burger container
 } 
