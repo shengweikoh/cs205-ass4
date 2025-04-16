@@ -3,12 +3,29 @@ package com.example.cs205_ass4.game.chef
 class ChefManager {
     private val chefs = mutableListOf<Chef>()
 
-    fun spawnChef(id: Int, chefState: ChefState) {
-        chefs.add(Chef(id, chefState = ChefState.IDLE))
+    fun spawnChef(id: Int, x: Float, y: Float) {
+        chefs.add(Chef(id, x, y))
     }
 
     fun getChefById(id: Int): Chef? {
         return chefs.find { it.id == id }
+    }
+
+    // Only assign a burger if the chef is currently idle.
+    fun assignBurgerToChef(chefId: Int, burgerId: Int) {
+        val chef = getChefById(chefId)
+        if (chef != null && chef.chefState == ChefState.IDLE) {
+            chef.chefState = ChefState.COOKING
+            chef.currentBurgerId = burgerId
+        }
+    }
+
+    // Mark the chef as finished and reset state.
+    fun finishCooking(chefId: Int) {
+        getChefById(chefId)?.let { chef ->
+            chef.chefState = ChefState.IDLE
+            chef.currentBurgerId = null
+        }
     }
 
     fun toggleChef(chefId: Int) {

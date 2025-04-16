@@ -6,5 +6,8 @@ enum class ChefState {
 
 data class Chef(
     val id: Int,
-    var chefState: ChefState = ChefState.IDLE
+    var xPosition: Float,
+    var yPosition: Float,
+    var chefState: ChefState = ChefState.IDLE,
+    var currentBurgerId: Int? = null  // Track the burger (process) being handled
 )

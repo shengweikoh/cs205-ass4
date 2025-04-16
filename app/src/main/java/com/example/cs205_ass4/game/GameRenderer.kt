@@ -10,14 +10,17 @@ import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.graphics.PointF
 import android.graphics.Rect
+import android.widget.TextView
+import com.bumptech.glide.Glide
 import com.example.cs205_ass4.R
 import com.example.cs205_ass4.game.chef.ChefConstants
 import com.example.cs205_ass4.game.burger.BurgerConstants
+import com.example.cs205_ass4.game.chef.ChefState
 import com.example.cs205_ass4.utils.SelectionUtils
 
-class GameRenderer(private val activity: Activity, private val gameEngine: GameEngine) {
-    private lateinit var chefImage: ImageView
-    private lateinit var chefImage2: ImageView
+class GameRenderer(private val activity: Activity, private val gameEngine: GameEngine) {private lateinit var chefImageList: List<ImageView>
+    private lateinit var burgerCounterTextView: TextView
+    private lateinit var burgerExpiredTextView: TextView
     private lateinit var burgerContainer: FrameLayout
     private lateinit var kitchenCounter: RelativeLayout
 
@@ -46,19 +49,53 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
 
     fun setupUI() {
         // Bind chef ImageViews
-        chefImage = activity.findViewById(R.id.imageViewChef1)
-        chefImage2 = activity.findViewById(R.id.imageViewChef2)
-
+        val chef1 = activity.findViewById<ImageView>(R.id.imageViewChef1)
+        val chef2 = activity.findViewById<ImageView>(R.id.imageViewChef2)
+        val chef3 = activity.findViewById<ImageView>(R.id.imageViewChef3)
+        val chef4 = activity.findViewById<ImageView>(R.id.imageViewChef4)
+        chef1.tag = 1
+        chef2.tag = 2
+        chef3.tag = 3
+        chef4.tag = 4
         // Elevation so they appear above most things but below dragged burgers
-        chefImage.elevation = ChefConstants.CHEF_ELEVATION
-        chefImage2.elevation = ChefConstants.CHEF_ELEVATION
+        chef1.elevation = ChefConstants.CHEF_ELEVATION
+        chef2.elevation = ChefConstants.CHEF_ELEVATION
+        chef3.elevation = ChefConstants.CHEF_ELEVATION
+        chef4.elevation = ChefConstants.CHEF_ELEVATION
+        chefImageList = listOf(chef1, chef2, chef3, chef4)
 
         burgerContainer = activity.findViewById(R.id.burgerContainer)
         kitchenCounter = activity.findViewById(R.id.kitchenCounter)
 
+        // Bind the counter TextViews.
+        burgerCounterTextView = activity.findViewById(R.id.textViewBurgerCounter)
+        burgerExpiredTextView = activity.findViewById(R.id.textViewBurgerExpired)
+
         // Set up grid positions after layout
         kitchenCounter.post {
             setupGridPositions()
+        }
+
+        // Set callback to update the "cooked" counter.
+        gameEngine.setOnBurgerCookedCallback { count ->
+            activity.runOnUiThread {
+                burgerCounterTextView.text = "Burgers Cooked: $count"
+            }
+        }
+
+        // Set callback to update the "expired" counter.
+        gameEngine.setOnBurgerExpiredCountChangedCallback { count ->
+            activity.runOnUiThread {
+                burgerExpiredTextView.text = "Burgers Expired: $count"
+            }
+        }
+
+        // Set callback to update chef image when state changes.
+        gameEngine.setOnChefStateChangedCallback { chefId, state ->
+            activity.runOnUiThread {
+                val chefView = chefImageList.find { (it.tag as? Int) == chefId }
+                chefView?.let { updateChefImage(it, chefId) }
+            }
         }
 
         // Register for burger expiration callbacks
@@ -67,8 +104,10 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         }
         
         // Register chefs as interaction targets
-        selectBurgerToChef.registerInteractionTarget(chefImage)
-        selectBurgerToChef.registerInteractionTarget(chefImage2)
+        selectBurgerToChef.registerInteractionTarget(chef1)
+        selectBurgerToChef.registerInteractionTarget(chef2)
+        selectBurgerToChef.registerInteractionTarget(chef3)
+        selectBurgerToChef.registerInteractionTarget(chef4)
     }
 
     private fun setupGridPositions() {
@@ -220,44 +259,20 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         decayHandler.post(decayRunnable)
     }
 
+    private fun updateChefImage(chefImageView: ImageView, chefId: Int) {
+        val state = gameEngine.getChefState(chefId)
+        if (state == ChefState.COOKING) {
+            Glide.with(chefImageView.context)
+                .asGif()
+                .load(R.drawable.chef_cooking)
+                .into(chefImageView)
+        } else {
+            chefImageView.setImageResource(R.drawable.chef_idle)
+        }
+    }
+
     fun cleanup() {
         selectBurgerToChef.cleanup()
         gameEngine.stopGame()
     }
 }
-
-//    // Drag listener on the chef image.
-//    private val chefDragListener = View.OnDragListener { _, event ->
-//        when (event.action) {
-//            DragEvent.ACTION_DRAG_STARTED -> true
-//            DragEvent.ACTION_DROP -> {
-//                // When a burger is dropped on the chef, retrieve the burger view.
-//                val draggedView = event.localState as? View
-//                draggedView?.let { view ->
-//                    val burgerId = view.tag as? Int
-//                    if (burgerId != null) {
-//                        // Start cooking the burger with chef id = 1 (adjust as needed).
-//                        gameEngine.startCookingBurger(chefId = 1, burgerId = burgerId)
-//                        // Remove the burger view from the container.
-//                        burgerContainer.removeView(view)
-//                        // Update the chef image to reflect the cooking state.
-//                        updateChefImage(chefImage, 1)
-//                    }
-//                }
-//                true
-//            }
-//            else -> true
-//        }
-//    }
-//
-//    // Updates the chef's ImageView based on its state.
-//    private fun updateChefImage(imageView: ImageView, chefId: Int) {
-//        val state = gameEngine.getChefState(chefId)
-//        val drawableRes = if (state == ChefState.COOKING) {
-//            R.drawable.chef_cooking
-//        } else {
-//            R.drawable.chef_idle
-//        }
-//        imageView.setImageResource(drawableRes)
-//    }
-//}
