@@ -6,7 +6,5 @@ enum class ChefState {
 
 data class Chef(
     val id: Int,
-    var xPosition: Float,
-    var yPosition: Float,
     var chefState: ChefState = ChefState.IDLE
 )

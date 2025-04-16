@@ -85,7 +85,7 @@ class GameEngine {
         burgerCounter++
         val order = Order(burgerCounter, "burger")
         if (kitchenManager.addOrder(order)) {
-            burgerManager.spawnBurger(burgerCounter, 0f, 0f)
+            burgerManager.spawnBurger(burgerCounter)
         }
         return burgerCounter
     }
