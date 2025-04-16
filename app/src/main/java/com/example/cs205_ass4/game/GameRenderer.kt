@@ -27,6 +27,9 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     // Handler to schedule burger spawns on the main thread.
     private val handler = Handler(Looper.getMainLooper())
 
+    // Keep track of decay handlers for cleanup
+    private val decayHandlers = mutableMapOf<Int, Handler>()
+
     // Grid slots on the kitchen counter
     private val gridPositions = mutableListOf<PointF>()
     private val maxGridSlots = 5
@@ -44,6 +47,9 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
             val viewToRemove = burgerContainer.findViewWithTag<View>(burgerId)
             burgerContainer.removeView(viewToRemove)
             gameEngine.burgerManager.removeBurger(burgerId)
+            
+            // Clean up the decay handler for this burger
+            decayHandlers.remove(burgerId)?.removeCallbacksAndMessages(null)
         }
     )
 
@@ -149,6 +155,9 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
             val burgerId = view.tag as? Int
             if (burgerId != null && expiredBurgerIds.contains(burgerId)) {
                 viewsToRemove.add(view)
+                
+                // Clean up decay handler for this burger
+                decayHandlers.remove(burgerId)?.removeCallbacksAndMessages(null)
             }
         }
         viewsToRemove.forEach { view ->
@@ -241,6 +250,8 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
 
     private fun startDecayAnimation(decayBar: ProgressBar, burgerId: Int) {
         val decayHandler = Handler(Looper.getMainLooper())
+        decayHandlers[burgerId] = decayHandler
+        
         val decayRunnable = object : Runnable {
             override fun run() {
                 val order = gameEngine.kitchenManager.getOrders().find { it.id == burgerId }
@@ -272,7 +283,14 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     }
 
     fun cleanup() {
+        // Cancel all burger spawn callbacks
+        handler.removeCallbacksAndMessages(null)
+        
+        // Cancel all decay animations
+        decayHandlers.values.forEach { it.removeCallbacksAndMessages(null) }
+        decayHandlers.clear()
+        
         selectBurgerToChef.cleanup()
-        gameEngine.stopGame()
+        gameEngine.quitGame()
     }
 }

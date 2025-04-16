@@ -19,19 +19,27 @@ class MainActivity : AppCompatActivity() {
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(
-                systemBars.left,
-                systemBars.top,
-                systemBars.right,
-                systemBars.bottom
-            )
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        
+
         // Initialize game components
         gameEngine = GameEngine()
         gameRenderer = GameRenderer(this, gameEngine)
         gameRenderer.setupUI()
     }
+    // commented out because game will crash when these are not implemented
+    // override fun onPause() {
+    //     // TODO: Implement pause logic
+    // }
 
+    // override fun onResume() {
+    //     // TODO: Implement resume logic
+    // }
+
+    override fun onDestroy() {
+        // Clean up resources to prevent memory leaks
+        gameRenderer.cleanup()
+        super.onDestroy()
+    }
 }
