@@ -3,8 +3,8 @@ package com.example.cs205_ass4.game.chef
 class ChefManager {
     private val chefs = mutableListOf<Chef>()
 
-    fun spawnChef(id: Int, x: Float, y: Float) {
-        chefs.add(Chef(id, x, y))
+    fun spawnChef(id: Int) {
+        chefs.add(Chef(id))
     }
 
     fun getChefById(id: Int): Chef? {

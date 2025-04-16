@@ -35,10 +35,10 @@ class GameEngine {
 
     init {
         // Spawn initial chefs.
-        chefManager.spawnChef(id = 1, x = 100f, y = 200f)
-        chefManager.spawnChef(id = 2, x = 300f, y = 200f)
-        chefManager.spawnChef(id = 3, x = 100f, y = 400f)
-        chefManager.spawnChef(id = 4, x = 300f, y = 400f)
+        chefManager.spawnChef(id = 1)
+        chefManager.spawnChef(id = 2)
+        chefManager.spawnChef(id = 3)
+        chefManager.spawnChef(id = 4)
     }
 
     init {
