@@ -30,20 +30,34 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     // Grid slots on the kitchen counter
     private val gridPositions = mutableListOf<PointF>()
     private val maxGridSlots = 5
-    
+
+    private var grillCount = 20
+    private lateinit var grillCapacityTextView: TextView
+
     // Selection manager for burger-chef interactions
     private val selectBurgerToChef = SelectionUtils.SelectionManager<Int>(
         // there's no onItemSelected callback as we don't need to do anything when a burger is selected
-        
+
         onTargetInteraction = { burgerId, targetView ->
-           
+
             // TODO: To Change @ShengWei/LeeMin
             // Logic to assign burger to chef goes here
-
-            // For now, default behaviour, remove the burger view
+            // Existing logic to get the view
             val viewToRemove = burgerContainer.findViewWithTag<View>(burgerId)
-            burgerContainer.removeView(viewToRemove)
-            gameEngine.burgerManager.removeBurger(burgerId)
+            if (viewToRemove != null) {
+                // Retrieve the burger's numeric value using its tag
+                val burgerValue = viewToRemove.getTag(R.id.burger_value) as? Int ?: 0
+
+                // Deduct the burger's value from the grill capacity
+                grillCount -= burgerValue
+
+                // Update the grill capacity UI
+                grillCapacityTextView.text = "Capacity: $grillCount"
+
+                // Remove the burger view and update the game engine
+                burgerContainer.removeView(viewToRemove)
+                gameEngine.burgerManager.removeBurger(burgerId)
+            }
         }
     )
 
@@ -63,6 +77,9 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         chef3.elevation = ChefConstants.CHEF_ELEVATION
         chef4.elevation = ChefConstants.CHEF_ELEVATION
         chefImageList = listOf(chef1, chef2, chef3, chef4)
+
+        grillCapacityTextView = activity.findViewById(R.id.textViewGrillCapacity)
+        grillCapacityTextView.text = "Capacity: $grillCount"
 
         burgerContainer = activity.findViewById(R.id.burgerContainer)
         kitchenCounter = activity.findViewById(R.id.kitchenCounter)
@@ -166,27 +183,36 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     private fun spawnBurgerView() {
         val burgerId = gameEngine.spawnBurger()
 
-        // Find free grid index
+        // Generate a random burger value between 1 and 5
+        val burgerValue = (1..5).random()
+
+        // Find free grid index (existing code)
         val gridIndex = findFirstEmptyGridIndex()
         val gridPosition: PointF = if (gridIndex == -1) {
             // Overflow: stack horizontally along the bottom
             val overflowIndex = burgerContainer.childCount - maxGridSlots
-            val overflowX = 20f + (overflowIndex * 160f)  // Spacing out each burger
-            val overflowY = burgerContainer.height - 150f - 20f  // Fixed bottom Y
+            val overflowX = 20f + (overflowIndex * 160f)
+            val overflowY = burgerContainer.height - 150f - 20f
             PointF(overflowX, overflowY)
         } else {
             gridPositions[gridIndex]
         }
 
+        // Increase the container height to provide space for the burger number.
         val burgerWrapper = RelativeLayout(activity).apply {
-            layoutParams = FrameLayout.LayoutParams(150, 150)
+            // Changed height from 150 to 180 to accommodate the burger number below the image.
+            layoutParams = FrameLayout.LayoutParams(150, 180)
             tag = burgerId
             if (gridIndex != -1) {
                 setTag(R.id.grid_index_tag, gridIndex)
             }
-            elevation = BurgerConstants.BURGER_ELEVATION // make sure it's above chefs
+            // Save the burger's numeric value for later interactions.
+            setTag(R.id.burger_value, burgerValue)
+            elevation = BurgerConstants.BURGER_ELEVATION
         }
 
+
+        // The burger image and decay bar remain unchanged.
         val burgerView = ImageView(activity).apply {
             setImageResource(R.drawable.burger_order)
             layoutParams = RelativeLayout.LayoutParams(100, 100).apply {
@@ -194,32 +220,63 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
             }
         }
 
+        // 1) Progress Bar at the Top
         val decayBar = ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal).apply {
+            id = View.generateViewId()          // unique ID
             max = 100
             progress = 100
             layoutParams = RelativeLayout.LayoutParams(100, 20).apply {
-                addRule(RelativeLayout.BELOW, burgerView.id)
+                // Pin it to the top, center it horizontally
+                addRule(RelativeLayout.ALIGN_PARENT_TOP)
                 addRule(RelativeLayout.CENTER_HORIZONTAL)
-                topMargin = 5
+                topMargin = 4
             }
         }
 
-        burgerWrapper.addView(burgerView)
+        // 2) Burger Image in the Middle
+        val burgerImage = ImageView(activity).apply {
+            id = View.generateViewId()
+            setImageResource(R.drawable.burger_order)
+            layoutParams = RelativeLayout.LayoutParams(100, 100).apply {
+                // Place it below the progress bar
+                addRule(RelativeLayout.BELOW, decayBar.id)
+                addRule(RelativeLayout.CENTER_HORIZONTAL)
+                topMargin = 4
+            }
+        }
+
+        // 3) Numeric Label BELOW the Burger Image
+        val burgerValueTextView = TextView(activity).apply {
+            id = View.generateViewId()
+            text = burgerValue.toString()
+            textSize = 15f
+            setTextColor(android.graphics.Color.BLACK)
+            layoutParams = RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.WRAP_CONTENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                // Pin it BELOW the burger image
+                addRule(RelativeLayout.BELOW, burgerImage.id)
+                addRule(RelativeLayout.CENTER_HORIZONTAL)
+                topMargin = 6  // space between image & text
+            }
+        }
+
         burgerWrapper.addView(decayBar)
+        burgerWrapper.addView(burgerImage)
+        burgerWrapper.addView(burgerValueTextView)
 
         val burgerWidth = 150
         val burgerHeight = 150
-
         burgerWrapper.x = gridPosition.x - burgerWidth / 2
         burgerWrapper.y = gridPosition.y - burgerHeight / 2
 
-        // Register this burger with the selection manager
+        // Register this burger with the selection manager for interaction
         selectBurgerToChef.registerSelectableItem(burgerWrapper, burgerId)
-        
         burgerContainer.addView(burgerWrapper)
-
         startDecayAnimation(decayBar, burgerId)
     }
+
 
     private fun findFirstEmptyGridIndex(): Int {
         val usedIndices = mutableSetOf<Int>()
