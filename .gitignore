@@ -119,3 +119,5 @@ fastlane/test_output
 *.bak
 *.tmp
 *.temp
+
+.vscode/

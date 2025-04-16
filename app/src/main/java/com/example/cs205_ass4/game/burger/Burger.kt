@@ -1,14 +1,27 @@
 package com.example.cs205_ass4.game.burger
 
+import com.example.cs205_ass4.game.interfaces.Expirable
+
 data class Burger(
-    val id: Int,
-    var percentOfBurgerCooked: Float = 0.0f,
-    var burgerCreationTimestamp: Long = System.currentTimeMillis()
-) {
+        val id: Int,
+        var percentOfBurgerCooked: Float = 0.0f,
+        val burgerCreationTimestamp: Long = System.currentTimeMillis(),
+        override val decayDurationSec: Int = BurgerConstants.DEFAULT_BURGER_EXPIRATION_TIME_SEC,
+        override var freshnessPercentage: Float = 1.0f
+) : Expirable {
     fun cook(increment: Float) {
         percentOfBurgerCooked = (percentOfBurgerCooked + increment).coerceAtMost(1.0f)
     }
-    fun isExpired(): Boolean {
-        return System.currentTimeMillis() - burgerCreationTimestamp > BurgerConstants.BURGER_EXPIRATION_TIME
+
+    override fun isExpired(): Boolean {
+        return System.currentTimeMillis() - burgerCreationTimestamp > decayDurationSec * 1000
+    }
+
+    override fun decay() {
+//        println("Decaying burger $id")
+        val currentTime = System.currentTimeMillis()
+        val elapsedTime = currentTime - burgerCreationTimestamp
+        freshnessPercentage = ((decayDurationSec * 1000f - elapsedTime) / (decayDurationSec * 1000f)).coerceIn(0f, 1f)
+//        println("Freshness $freshnessPercentage")
     }
 }

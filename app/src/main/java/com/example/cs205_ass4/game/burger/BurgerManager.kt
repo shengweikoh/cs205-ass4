@@ -6,7 +6,7 @@ class BurgerManager {
     private val burgers = mutableListOf<Burger>()
 
     fun spawnBurger(id: Int) {
-        burgers.add(Burger(id, 0.0f))
+        burgers.add(Burger(id))
     }
 
     fun getBurgerById(id: Int): Burger? {

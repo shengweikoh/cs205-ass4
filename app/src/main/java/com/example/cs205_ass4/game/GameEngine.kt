@@ -2,12 +2,11 @@ package com.example.cs205_ass4.game
 
 import android.os.Handler
 import android.os.Looper
-import com.example.cs205_ass4.game.chef.ChefManager
+import com.example.cs205_ass4.game.burger.Burger
 import com.example.cs205_ass4.game.burger.BurgerManager
-import com.example.cs205_ass4.game.kitchen.KitchenManager
-import com.example.cs205_ass4.game.kitchen.Order
+import com.example.cs205_ass4.game.chef.ChefManager
 import com.example.cs205_ass4.game.chef.ChefState
-import kotlin.concurrent.thread
+import com.example.cs205_ass4.game.kitchen.KitchenManager
 
 class GameEngine {
 
@@ -22,7 +21,7 @@ class GameEngine {
 
     // Handler for the game loop and delayed tasks.
     private val handler = Handler(Looper.getMainLooper())
-    private val GAME_ENGINE_UPDATE_INTERVAL = 100L  // 10 updates per second
+    private val GAME_ENGINE_UPDATE_INTERVAL = 100L // 10 updates per second
 
     // Callback for when burger views must be removed.
     private var onBurgersExpiredCallback: ((List<Int>) -> Unit)? = null
@@ -41,12 +40,7 @@ class GameEngine {
         chefManager.spawnChef(id = 4)
     }
 
-    init {
-        // Set up order expiration callback
-        kitchenManager.setOnOrdersExpiredCallback { expiredOrderIds ->
-            onBurgersExpiredCallback?.invoke(expiredOrderIds)
-        }
-    }
+
 
     // Called to start game loops, timers, etc.
     fun startGame() {
@@ -54,27 +48,48 @@ class GameEngine {
         // Start the game loop
         scheduleUpdate()
     }
-    
+
     private fun scheduleUpdate() {
-        handler.postDelayed({
-            updateGame()
-            scheduleUpdate()  // Schedule the next update
-        }, GAME_ENGINE_UPDATE_INTERVAL)
+        handler.postDelayed(
+                {
+                    updateGame()
+                    scheduleUpdate() // Schedule the next update
+                },
+                GAME_ENGINE_UPDATE_INTERVAL
+        )
     }
 
     // Called on each game tick/update
     fun updateGame() {
         // Get expired burger IDs before updating
         val expiredBurgerIds = burgerManager.getExpiredBurgerIds()
-        
-        chefManager.updateChefs()    // Update chef states, positions, etc.
-        burgerManager.updateBurgers()  // Deletes expired burgers and updates burger states, positions, etc.
+
+        chefManager.updateChefs() // Update chef states, positions, etc.
+        burgerManager
+                .updateBurgers() // Deletes expired burgers and updates burger states, positions,
+        // etc.
+
+        // Sync burgers with kitchen counter
+        syncBurgersWithKitchenCounter()
 
         // Additional game logic (e.g., collision detection, scoring) goes here
 
         // Notify about expired burgers
         if (expiredBurgerIds.isNotEmpty()) {
             onBurgersExpiredCallback?.invoke(expiredBurgerIds)
+        }
+    }
+
+    // Synchronize burger freshness between KitchenCounter and BurgerManager
+    private fun syncBurgersWithKitchenCounter() {
+        val kitchenFood = kitchenManager.getAllFood()
+        
+        // Update burger freshness from kitchen counter
+        kitchenFood.forEach { food ->
+            if (food is Burger) {
+                val burger = burgerManager.getBurgerById(food.id)
+                burger?.freshnessPercentage = food.freshnessPercentage
+            }
         }
     }
 
@@ -112,8 +127,8 @@ class GameEngine {
 
     fun spawnBurger(): Int {
         burgerCounter++
-        val order = Order(burgerCounter, "burger")
-        if (kitchenManager.addOrder(order)) {
+        val burger = Burger(burgerCounter)
+        if (kitchenManager.addFood(burger)) {
             burgerManager.spawnBurger(burgerCounter)
         }
         return burgerCounter
@@ -122,7 +137,7 @@ class GameEngine {
     fun quitGame() {
         // Remove all pending callbacks to prevent memory leaks
         handler.removeCallbacksAndMessages(null)
-        
+
         // Stop the kitchen manager
         kitchenManager.stop()
         // there's no need to stop burger and chef managers as they do not start any threads

@@ -1,23 +1,21 @@
 package com.example.cs205_ass4.game.kitchen
 
+import com.example.cs205_ass4.game.interfaces.Expirable
+
 class KitchenManager {
-    private val kitchen = Kitchen()
-    private var onOrdersExpiredCallback: ((List<Int>) -> Unit)? = null
+    private val kitchenCounter = KitchenCounter()
 
-    fun addOrder(order: Order): Boolean {
-        return kitchen.kitchenCounter.addOrder(order)
+
+    fun addFood(order: Expirable): Boolean {
+        return kitchenCounter.addFood(order)
     }
 
-    fun getOrders(): List<Order> {
-        return kitchen.kitchenCounter.getOrders()
-    }
-
-    fun setOnOrdersExpiredCallback(callback: (List<Int>) -> Unit) {
-        onOrdersExpiredCallback = callback
-        kitchen.kitchenCounter.setOnOrdersExpiredCallback(callback)
+    fun getAllFood(): List<Expirable> {
+        return kitchenCounter.getAllFood()
     }
 
     fun stop() {
-        kitchen.kitchenCounter.stop()
+        kitchenCounter.stop()
     }
-} 
+
+}

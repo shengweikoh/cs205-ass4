@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         // Clean up resources to prevent memory leaks
+        gameRenderer.stopDecayUpdates()
         gameRenderer.cleanup()
         super.onDestroy()
     }
