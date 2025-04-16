@@ -28,7 +28,7 @@ class KitchenCounter(
     init {
         // Start decay thread
         thread {
-            var lastUpdateTime = System.nanoTime()
+
             val targetDelta = (1000_000_000 / 60).toLong() // 60 FPS in nanoseconds
             
             while (isRunning) {
@@ -56,8 +56,6 @@ class KitchenCounter(
                 if (sleepTime > 0) {
                     Thread.sleep(sleepTime)
                 }
-                
-                lastUpdateTime = currentTime
             }
         }
     }
@@ -81,30 +79,5 @@ class KitchenCounter(
 
     fun stop() {
         isRunning = false
-    }
-
-    fun draw(drawScope: DrawScope, position: Offset, size: Size) {
-        val orderWidth = size.width / maxOrders
-        val orderHeight = size.height
-
-        orders.forEachIndexed { index, order ->
-            val x = position.x + (index * orderWidth)
-            
-
-            // Draw decay indicator (Green -> Orange -> Red)
-            val decayColor = when {
-                order.decay > 0.7f -> Color.Green
-                order.decay > 0.3f -> Color(0xFFFFA500) // Orange
-                // TODO: this line is causing some issues where new orders are red
-                else -> Color.Red
-            }
-
-            // Draw decay bar using decay colour
-            drawScope.drawRect(
-                color = decayColor,
-                topLeft = Offset(x, position.y + orderHeight * 0.8f),
-                size = Size(orderWidth * order.decay, orderHeight * 0.2f)
-            )
-        }
     }
 } 
