@@ -33,12 +33,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         // there's no onItemSelected callback as we don't need to do anything when a burger is selected
         
         onTargetInteraction = { burgerId, targetView ->
-            // Handle when a chef is clicked with a burger selected
-            val chefId = when(targetView) {
-                chefImage -> 1
-                chefImage2 -> 2
-                else -> return@SelectionManager
-            }
+           
             // TODO: To Change @ShengWei/LeeMin
             // Logic to assign burger to chef goes here
 
@@ -46,8 +41,6 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
             val viewToRemove = burgerContainer.findViewWithTag<View>(burgerId)
             burgerContainer.removeView(viewToRemove)
             gameEngine.burgerManager.removeBurger(burgerId)
-
-
         }
     )
 
