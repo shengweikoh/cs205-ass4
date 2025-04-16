@@ -90,7 +90,12 @@ class GameEngine {
         return burgerCounter
     }
 
-    fun stopGame() {
+    fun quitGame() {
+        // Remove all pending callbacks to prevent memory leaks
+        handler.removeCallbacksAndMessages(null)
+        
+        // Stop the kitchen manager
         kitchenManager.stop()
+        // there's no need to stop burger and chef managers as they do not start any threads
     }
 }
