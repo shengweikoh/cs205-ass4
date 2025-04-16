@@ -18,10 +18,8 @@ data class Burger(
     }
 
     override fun decay() {
-//        println("Decaying burger $id")
         val currentTime = System.currentTimeMillis()
         val elapsedTime = currentTime - burgerCreationTimestamp
         freshnessPercentage = ((decayDurationSec * 1000f - elapsedTime) / (decayDurationSec * 1000f)).coerceIn(0f, 1f)
-//        println("Freshness $freshnessPercentage")
     }
 }

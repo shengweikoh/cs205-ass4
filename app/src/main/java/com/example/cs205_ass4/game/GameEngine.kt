@@ -69,27 +69,11 @@ class GameEngine {
                 .updateBurgers() // Deletes expired burgers and updates burger states, positions,
         // etc.
 
-        // Sync burgers with kitchen counter
-        syncBurgersWithKitchenCounter()
-
         // Additional game logic (e.g., collision detection, scoring) goes here
 
         // Notify about expired burgers
         if (expiredBurgerIds.isNotEmpty()) {
             onBurgersExpiredCallback?.invoke(expiredBurgerIds)
-        }
-    }
-
-    // Synchronize burger freshness between KitchenCounter and BurgerManager
-    private fun syncBurgersWithKitchenCounter() {
-        val kitchenFood = kitchenManager.getAllFood()
-        
-        // Update burger freshness from kitchen counter
-        kitchenFood.forEach { food ->
-            if (food is Burger) {
-                val burger = burgerManager.getBurgerById(food.id)
-                burger?.freshnessPercentage = food.freshnessPercentage
-            }
         }
     }
 
@@ -129,7 +113,7 @@ class GameEngine {
         burgerCounter++
         val burger = Burger(burgerCounter)
         if (kitchenManager.addFood(burger)) {
-            burgerManager.spawnBurger(burgerCounter)
+            burgerManager.spawnBurger(burgerCounter, burger)
         }
         return burgerCounter
     }

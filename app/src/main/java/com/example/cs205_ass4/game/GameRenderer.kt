@@ -16,6 +16,7 @@ import com.example.cs205_ass4.game.burger.BurgerConstants
 import com.example.cs205_ass4.game.chef.ChefConstants
 import com.example.cs205_ass4.game.chef.ChefState
 import com.example.cs205_ass4.utils.SelectionUtils
+import com.example.cs205_ass4.game.kitchen.KitchenConstants
 
 class GameRenderer(private val activity: Activity, private val gameEngine: GameEngine) {
     private lateinit var chefImageList: List<ImageView>
@@ -29,7 +30,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     private val handler = Handler(Looper.getMainLooper())
     // Grid slots on the kitchen counter
     private val gridPositions = mutableListOf<PointF>()
-    private val maxGridSlots = 5
+    private val maxGridSlots = KitchenConstants.MAX_ORDERS
 
     // Selection manager for burger-chef interactions
     private val selectBurgerToChef =

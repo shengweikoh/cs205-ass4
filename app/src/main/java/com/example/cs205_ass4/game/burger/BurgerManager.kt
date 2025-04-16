@@ -3,28 +3,29 @@ package com.example.cs205_ass4.game.burger
 import kotlin.collections.remove
 
 class BurgerManager {
-    private val burgers = mutableListOf<Burger>()
+    // map to store the same burgers in kitchen manager by id
+    private val burgers = mutableMapOf<Int, Burger>()
 
-    fun spawnBurger(id: Int) {
-        burgers.add(Burger(id))
+    fun spawnBurger(id: Int, burger: Burger) {
+        burgers[id] = burger
     }
 
     fun getBurgerById(id: Int): Burger? {
-        return burgers.find { it.id == id }
+        return burgers[id]
     }
 
     fun updateBurgers() {
         // TODO: Update burger logic (e.g., cooking timers, quality checks)
         // remove expired burgers
         val expiredBurgerIds = getExpiredBurgerIds()
-        burgers.removeAll { burger -> expiredBurgerIds.contains(burger.id) }
+        expiredBurgerIds.forEach { burgers.remove(it) }
     }
 
     fun getExpiredBurgerIds(): List<Int> {
-        return burgers.filter { it.isExpired() }.map { it.id }
+        return burgers.entries.filter { it.value.isExpired() }.map { it.key }
     }
 
     fun removeBurger(id: Int) {
-        burgers.removeIf { burger -> burger.id == id }
+        burgers.remove(id)
     }
 }
