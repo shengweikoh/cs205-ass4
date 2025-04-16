@@ -3,7 +3,6 @@ package com.example.cs205_ass4.game
 import android.app.Activity
 import android.os.Handler
 import android.os.Looper
-import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -12,9 +11,10 @@ import android.widget.RelativeLayout
 import android.graphics.PointF
 import android.graphics.Rect
 import com.example.cs205_ass4.R
-import com.example.cs205_ass4.game.kitchen.KitchenConstants
 import com.example.cs205_ass4.game.chef.ChefConstants
 import com.example.cs205_ass4.game.burger.BurgerConstants
+import com.example.cs205_ass4.utils.SelectionUtils
+
 class GameRenderer(private val activity: Activity, private val gameEngine: GameEngine) {
     private lateinit var chefImage: ImageView
     private lateinit var chefImage2: ImageView
@@ -27,47 +27,29 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     // Grid slots on the kitchen counter
     private val gridPositions = mutableListOf<PointF>()
     private val maxGridSlots = 5
-
-    // Custom touch listener class to avoid duplicate class definitions
-    private inner class BurgerTouchListener : View.OnTouchListener {
-        var dX = 0f
-        var dY = 0f
-        override fun onTouch(view: View, event: MotionEvent): Boolean {
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    dX = view.x - event.rawX
-                    dY = view.y - event.rawY
-                    return true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    view.x = event.rawX + dX
-                    view.y = event.rawY + dY
-                    return true
-                }
-                MotionEvent.ACTION_UP -> {
-                    val gridIndex = view.getTag(R.id.grid_index_tag) as? Int
-                    if (!isViewOverlapping(view, chefImage) && !isViewOverlapping(view, chefImage2)) {
-                        // Snap back to grid slot
-                        if (gridIndex != null && gridIndex in gridPositions.indices) {
-                            val pos = gridPositions[gridIndex]
-                            view.x = pos.x - view.width / 2f
-                            view.y = pos.y - view.height / 2f
-                        }
-                    } else {
-                        // Logic to assign burger to chef can go here
-
-                        /*
-                        gameEngine.startCookingBurger(chefId = 1, burgerId = burgerId)
-                        burgerContainer.removeView(view)
-                        updateChefImage(chefImage, 1)
-                        */
-                    }
-                    return true
-                }
-                else -> return false
+    
+    // Selection manager for burger-chef interactions
+    private val selectBurgerToChef = SelectionUtils.SelectionManager<Int>(
+        // there's no onItemSelected callback as we don't need to do anything when a burger is selected
+        
+        onTargetInteraction = { burgerId, targetView ->
+            // Handle when a chef is clicked with a burger selected
+            val chefId = when(targetView) {
+                chefImage -> 1
+                chefImage2 -> 2
+                else -> return@SelectionManager
             }
+            // TODO: To Change @ShengWei/LeeMin
+            // Logic to assign burger to chef goes here
+
+            // For now, default behaviour, remove the burger view
+            val viewToRemove = burgerContainer.findViewWithTag<View>(burgerId)
+            burgerContainer.removeView(viewToRemove)
+            gameEngine.burgerManager.removeBurger(burgerId)
+
+
         }
-    }
+    )
 
     fun setupUI() {
         // Bind chef ImageViews
@@ -90,7 +72,10 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         gameEngine.setOnBurgersExpiredCallback { expiredBurgerIds ->
             removeExpiredBurgerViews(expiredBurgerIds)
         }
-
+        
+        // Register chefs as interaction targets
+        selectBurgerToChef.registerInteractionTarget(chefImage)
+        selectBurgerToChef.registerInteractionTarget(chefImage2)
     }
 
     private fun setupGridPositions() {
@@ -196,7 +181,9 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         burgerWrapper.x = gridPosition.x - burgerWidth / 2
         burgerWrapper.y = gridPosition.y - burgerHeight / 2
 
-        burgerWrapper.setOnTouchListener(BurgerTouchListener())
+        // Register this burger with the selection manager
+        selectBurgerToChef.registerSelectableItem(burgerWrapper, burgerId)
+        
         burgerContainer.addView(burgerWrapper)
 
         startDecayAnimation(decayBar, burgerId)
@@ -241,6 +228,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     }
 
     fun cleanup() {
+        selectBurgerToChef.cleanup()
         gameEngine.stopGame()
     }
 }

@@ -1,5 +1,7 @@
 package com.example.cs205_ass4.game.burger
 
+import kotlin.collections.remove
+
 class BurgerManager {
     private val burgers = mutableListOf<Burger>()
 
@@ -20,5 +22,9 @@ class BurgerManager {
 
     fun getExpiredBurgerIds(): List<Int> {
         return burgers.filter { it.isExpired() }.map { it.id }
+    }
+
+    fun removeBurger(id: Int) {
+        burgers.removeIf { burger -> burger.id == id }
     }
 }
