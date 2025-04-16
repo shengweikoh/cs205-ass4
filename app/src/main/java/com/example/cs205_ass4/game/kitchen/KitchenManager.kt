@@ -12,6 +12,11 @@ class KitchenManager {
         return kitchen.kitchenCounter.getOrders()
     }
 
+    // in KitchenManager.kt, below getOrders()
+    fun removeOrder(orderId: Int): Boolean {
+        return kitchen.removeOrder(orderId)
+    }
+
     fun setOnOrdersExpiredCallback(callback: (List<Int>) -> Unit) {
         onOrdersExpiredCallback = callback
         kitchen.kitchenCounter.setOnOrdersExpiredCallback(callback)

@@ -69,6 +69,17 @@ class KitchenCounter(
         }
     }
 
+    /**
+     * Remove the order with the given ID from the queue.
+     * @return true if an order was removed, false otherwise.
+     */
+    fun removeOrder(orderId: Int): Boolean {
+        synchronized(lock) {
+            return orders.removeIf { it.id == orderId }
+        }
+    }
+
+
     fun getOrders(): List<Order> {
         return orders.toList()
     }

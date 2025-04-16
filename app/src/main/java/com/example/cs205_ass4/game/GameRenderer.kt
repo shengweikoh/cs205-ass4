@@ -34,6 +34,30 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     private var grillCount = 20
     private lateinit var grillCapacityTextView: TextView
 
+    private fun teleportBurgerToChef(burgerWrapper: View, chefView: View) {
+        // Get chef's location on the screen.
+        val chefLocation = IntArray(2)
+        chefView.getLocationOnScreen(chefLocation)
+        // Get burgerContainer's location on the screen.
+        val containerLocation = IntArray(2)
+        burgerContainer.getLocationOnScreen(containerLocation)
+
+        // Calculate chef's relative position inside burgerContainer.
+        val relativeChefX = chefLocation[0] - containerLocation[0]
+        val relativeChefY = chefLocation[1] - containerLocation[1]
+
+        // Center the burger container horizontally under the chef.
+        val newX = relativeChefX + chefView.width / 2 - burgerWrapper.width / 2
+        // Position the burger container just below the chef with an optional margin.
+        val marginBelowChef = 5  // pixels (adjust as needed)
+        val newY = relativeChefY + chefView.height + marginBelowChef
+
+        // Reposition the burger container.
+        burgerWrapper.x = newX.toFloat()
+        burgerWrapper.y = newY.toFloat()
+    }
+
+
     // Selection manager for burger-chef interactions
     private val selectBurgerToChef = SelectionUtils.SelectionManager<Int>(
         // there's no onItemSelected callback as we don't need to do anything when a burger is selected
@@ -42,24 +66,87 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
 
             // TODO: To Change @ShengWei/LeeMin
             // Logic to assign burger to chef goes here
-            // Existing logic to get the view
-            val viewToRemove = burgerContainer.findViewWithTag<View>(burgerId)
-            if (viewToRemove != null) {
-                // Retrieve the burger's numeric value using its tag
-                val burgerValue = viewToRemove.getTag(R.id.burger_value) as? Int ?: 0
+            // Get the burger container using its tag.
+            val burgerWrapper = burgerContainer.findViewWithTag<View>(burgerId) as? RelativeLayout
+            if (burgerWrapper != null && targetView is ImageView) {
+                // Retrieve the burger's numeric value using its tag.
+                val burgerValue = burgerWrapper.getTag(R.id.burger_value) as? Int ?: 0
 
-                // Deduct the burger's value from the grill capacity
-                grillCount -= burgerValue
+                // Check if deducting this burger's value would cause the grill capacity to go negative.
+                if (grillCount - burgerValue >= 0) {
+                    // Deduct the burger's value from the grill capacity
+                    grillCount -= burgerValue
+                    grillCapacityTextView.text = "Capacity: $grillCount"
 
-                // Update the grill capacity UI
-                grillCapacityTextView.text = "Capacity: $grillCount"
+                    // Mark this burger as having been transferred to a chef.
+                    burgerWrapper.setTag(R.id.burger_transferred, true)
 
-                // Remove the burger view and update the game engine
-                burgerContainer.removeView(viewToRemove)
-                gameEngine.burgerManager.removeBurger(burgerId)
+                    // Teleport the burger container so that it appears below the selected chef.
+                    teleportBurgerToChef(burgerWrapper, targetView)
+                    // Start the layering process.
+                    startBurgerLayering(burgerWrapper)
+                } else {
+                }
             }
         }
     )
+
+    private fun startBurgerLayering(burgerWrapper: RelativeLayout) {
+        // Retrieve the burger image from the burgerWrapper.
+        // We assume it's the second child added (index 1).
+        val burgerImage = burgerWrapper.getChildAt(1) as? ImageView ?: return
+
+        // Define the layering sequence.
+        // Note: burger_bottom is initially set in spawnBurgerView, so we start layering from tomato.
+        val layeringSequence = listOf(
+            R.drawable.burger_bottom,  // index 0; already shown.
+            R.drawable.burger_tomato,  // index 1
+            R.drawable.burger_patty,   // index 2
+            R.drawable.burger_lettuce, // index 3
+            R.drawable.burger_top      // index 4
+        )
+
+        // Start from index 1 (burger_tomato), because burger_bottom is already displayed.
+        var currentStep = 1
+        val layeringHandler = Handler(Looper.getMainLooper())
+        val layeringRunnable = object : Runnable {
+            override fun run() {
+                if (currentStep < layeringSequence.size) {
+                    // Update the burger image to the next layer.
+                    burgerImage.setImageResource(layeringSequence[currentStep])
+                    currentStep++
+                    // Schedule next update after 1.5 seconds.
+                    layeringHandler.postDelayed(this, 1000)
+                } else {
+                    // Layering complete (burger_top reached); wait a moment then remove the burger.
+                    layeringHandler.postDelayed({
+                        // Before removal, check if this burger was transferred.
+                        val transferred = burgerWrapper.getTag(R.id.burger_transferred) as? Boolean ?: false
+                        val burgerValue = burgerWrapper.getTag(R.id.burger_value) as? Int ?: 0
+                        if (transferred && burgerWrapper.parent != null) {
+                            grillCount = (grillCount + burgerValue)
+                            grillCapacityTextView.text = "Capacity: $grillCount"
+                            burgerWrapper.setTag(R.id.burger_transferred, false)
+                        }
+
+                        burgerContainer.removeView(burgerWrapper)
+                        // Notify the game engine or update your cooked count.
+                        // For example, if your gameEngine has a method:
+                        // — FIX A: take the order out of the decay tracker —
+                        val burgerId = burgerWrapper.tag as? Int ?: return@postDelayed
+                        gameEngine.kitchenManager.removeOrder(burgerId)
+
+                        gameEngine.incrementBurgerCooked()
+                        // Alternatively, if you keep a local cooked count variable:
+                        // cookedCount++ and then update burgerCounterTextView.text = "Burgers Cooked: $cookedCount"
+                    }, 100)
+                }
+            }
+        }
+        // Kick off the layering after a 1.5-second delay.
+        layeringHandler.postDelayed(layeringRunnable, 1000)
+    }
+
 
     fun setupUI() {
         // Bind chef ImageViews
@@ -163,15 +250,28 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         val viewsToRemove = mutableListOf<View>()
         for (i in 0 until burgerContainer.childCount) {
             val view = burgerContainer.getChildAt(i)
-            val burgerId = view.tag as? Int
-            if (burgerId != null && expiredBurgerIds.contains(burgerId)) {
+            val burgerId = view.tag as? Int ?: continue
+
+            if (expiredBurgerIds.contains(burgerId)) {
+                val transferred = view.getTag(R.id.burger_transferred) as? Boolean ?: false
+                if (transferred) {
+                    // 1) pull the value back out
+                    val burgerValue = view.getTag(R.id.burger_value) as? Int ?: 0
+                    // 2) clamp against MAX_GRILL_CAPACITY, not grillCount
+                    grillCount = (grillCount + burgerValue)
+                    grillCapacityTextView.text = "Capacity: $grillCount"
+                    // 3) clear the flag so we can’
+                    view.setTag(R.id.burger_transferred, false)
+                }
                 viewsToRemove.add(view)
             }
         }
-        viewsToRemove.forEach { view ->
-            burgerContainer.removeView(view)
-        }
+
+        // Now actually remove the expired views
+        viewsToRemove.forEach { burgerContainer.removeView(it) }
     }
+
+
 
     private fun scheduleBurgerSpawn() {
         handler.postDelayed({
@@ -214,7 +314,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
 
         // The burger image and decay bar remain unchanged.
         val burgerView = ImageView(activity).apply {
-            setImageResource(R.drawable.burger_order)
+            setImageResource(R.drawable.burger_bottom)
             layoutParams = RelativeLayout.LayoutParams(100, 100).apply {
                 addRule(RelativeLayout.CENTER_HORIZONTAL)
             }
@@ -233,10 +333,14 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
             }
         }
 
+        val initialDecay = gameEngine.kitchenManager.getOrders()
+            .find { it.id == burgerId }?.decay ?: 1.0f
+        decayBar.progress = (initialDecay * 100).toInt()
+
         // 2) Burger Image in the Middle
         val burgerImage = ImageView(activity).apply {
             id = View.generateViewId()
-            setImageResource(R.drawable.burger_order)
+            setImageResource(R.drawable.burger_bottom)
             layoutParams = RelativeLayout.LayoutParams(100, 100).apply {
                 // Place it below the progress bar
                 addRule(RelativeLayout.BELOW, decayBar.id)
