@@ -225,8 +225,11 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
 
         // Register for burger expiration callbacks
         gameEngine.setOnBurgersExpiredCallback { expiredBurgerIds ->
-            removeExpiredBurgerViews(expiredBurgerIds)
+            activity.runOnUiThread {
+                removeExpiredBurgerViews(expiredBurgerIds)
+            }
         }
+
 
         // Register chefs as interaction targets
         selectBurgerToChef.registerInteractionTarget(chef1)
@@ -255,21 +258,28 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     }
 
     private fun updateDecay() {
-        for (burgerId in mapProgressBar.keys) {
-            val decayBar = mapProgressBar[burgerId]
-            val burger = gameEngine.burgerManager.getBurgerById(burgerId)
-             println("Burger ID: $burgerId, Freshness Percentage: ${burger?.freshnessPercentage}")
-            burger ?: continue // Use continue instead of return to process all burgers
-            val freshnessPercentage = burger.freshnessPercentage
-            val progress = (freshnessPercentage * 100).toInt()
-            decayBar?.progress = progress
-            decayBar?.progressDrawable?.setTint(
+        try {
+            for (burgerId in mapProgressBar.keys.toList()) {
+                val burger = gameEngine.burgerManager.getBurgerById(burgerId)
+                if (burger == null) {
+                    mapProgressBar.remove(burgerId)
+                    continue
+                }
+
+                val decayBar = mapProgressBar[burgerId] ?: continue
+                val freshness = burger.freshnessPercentage
+                decayBar.progress = (freshness * 100).toInt()
+                decayBar.progressDrawable?.setTint(
                     when {
-                        freshnessPercentage > 0.7f -> Color.GREEN
-                        freshnessPercentage > 0.3f -> "#FFA500".toColorInt()
+                        freshness > 0.7f -> Color.GREEN
+                        freshness > 0.3f -> "#FFA500".toColorInt()
                         else -> Color.RED
                     }
-            )
+                )
+            }
+        } catch (e: Exception) {
+            println("💥 Crash caught in updateDecay: ${e.message}")
+            e.printStackTrace()
         }
     }
 
@@ -329,6 +339,9 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
                     // 3) clear the flag so we can’
                     view.setTag(R.id.burger_transferred, false)
                 }
+
+                mapProgressBar.remove(burgerId)
+
                 viewsToRemove.add(view)
             }
         }
