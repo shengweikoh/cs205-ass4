@@ -25,6 +25,8 @@ class GameEngine {
 
     // Callback for when burger views must be removed.
     private var onBurgersExpiredCallback: ((List<Int>) -> Unit)? = null
+    // Callback for when burger freshness is updated
+    private var onBurgerFreshnessUpdatedCallback: ((Map<Int, Float>) -> Unit)? = null
     // Callback for when a burger has finished cooking.
     private var onBurgerCookedCallback: ((Int) -> Unit)? = null
     // Callback for notifying when a chef's state changes.
@@ -38,56 +40,61 @@ class GameEngine {
         chefManager.spawnChef(id = 2)
         chefManager.spawnChef(id = 3)
         chefManager.spawnChef(id = 4)
+
+        // Set up kitchen manager callbacks
+        kitchenManager.setOnBurgerExpiredCallback { expiredBurgerIds ->
+            // When burgers expire, remove them from BurgerManager
+            expiredBurgerIds.forEach { burgerId ->
+                burgerManager.removeBurger(burgerId)
+            }
+
+            // Update counters
+            expiredBurgerCounter += expiredBurgerIds.size
+
+            // Notify listeners
+            onBurgerExpiredCountChangedCallback?.invoke(expiredBurgerCounter)
+            onBurgersExpiredCallback?.invoke(expiredBurgerIds)
+        }
+
+        kitchenManager.setOnBurgerDecayedCallback { decayedBurgers ->
+            // Update UI with current freshness values
+            onBurgerFreshnessUpdatedCallback?.invoke(
+                decayedBurgers.associate { it.id to it.freshnessPercentage }
+            )
+        }
     }
-
-
 
     // Called to start game loops, timers, etc.
     fun startGame() {
-        // TODO: Implement other game loop logic or timer events
         // Start the game loop
         scheduleUpdate()
     }
 
     private fun scheduleUpdate() {
         handler.postDelayed(
-                {
-                    updateGame()
-                    scheduleUpdate() // Schedule the next update
-                },
-                GAME_ENGINE_UPDATE_INTERVAL
+            {
+                updateGame()
+                scheduleUpdate() // Schedule the next update
+            },
+            GAME_ENGINE_UPDATE_INTERVAL
         )
     }
 
     // Called on each game tick/update
     fun updateGame() {
-        // Get expired burger IDs before updating
-        val expiredBurgerIds = burgerManager.getExpiredBurgerIds()
-
         chefManager.updateChefs() // Update chef states, positions, etc.
-        burgerManager
-                .updateBurgers() // Deletes expired burgers and updates burger states, positions,
-        // etc.
 
         // Additional game logic (e.g., collision detection, scoring) goes here
-
-        // Notify about expired burgers
-        if (expiredBurgerIds.isNotEmpty()) {
-            // 1) Increment the expired count by however many expired.
-            expiredBurgerCounter += expiredBurgerIds.size
-            // 2) Notify the "expired burger count changed" callback, so the UI can update.
-            onBurgerExpiredCountChangedCallback?.invoke(expiredBurgerCounter)
-            onBurgersExpiredCallback?.invoke(expiredBurgerIds)
-        }
     }
 
     // Register for burger expiration callbacks
-    // Currently, we are using event-based callbacks to remove expired burgers
-    // Meaning game engine will call game renderer remove expired burgers method when burgers expire
-    // Might want to use a timer-based approach for future extension if required
-    // Callback setter for expired burger views (UI removal).
     fun setOnBurgersExpiredCallback(callback: (List<Int>) -> Unit) {
         onBurgersExpiredCallback = callback
+    }
+
+    // New method for updating burger freshness UI
+    fun setOnBurgerFreshnessUpdatedCallback(callback: (Map<Int, Float>) -> Unit) {
+        onBurgerFreshnessUpdatedCallback = callback
     }
 
     // Callback setter for cooked burger count.

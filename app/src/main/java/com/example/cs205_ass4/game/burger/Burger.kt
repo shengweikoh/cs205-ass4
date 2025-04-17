@@ -3,11 +3,11 @@ package com.example.cs205_ass4.game.burger
 import com.example.cs205_ass4.game.interfaces.Expirable
 
 data class Burger(
-        val id: Int,
-        var percentOfBurgerCooked: Float = 0.0f,
-        val burgerCreationTimestamp: Long = System.currentTimeMillis(),
-        override val decayDurationSec: Int = BurgerConstants.DEFAULT_BURGER_EXPIRATION_TIME_SEC,
-        override var freshnessPercentage: Float = 1.0f
+    val id: Int,
+    var percentOfBurgerCooked: Float = 0.0f,
+    val burgerCreationTimestamp: Long = System.currentTimeMillis(),
+    override val decayDurationSec: Int = BurgerConstants.DEFAULT_BURGER_EXPIRATION_TIME_SEC,
+    override var freshnessPercentage: Float = 1.0f
 ) : Expirable {
     fun cook(increment: Float) {
         percentOfBurgerCooked = (percentOfBurgerCooked + increment).coerceAtMost(1.0f)

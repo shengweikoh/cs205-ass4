@@ -1,6 +1,8 @@
 package com.example.cs205_ass4.game
 
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.graphics.Color
 import android.graphics.PointF
 import android.os.Handler
 import android.os.Looper
@@ -17,6 +19,7 @@ import com.example.cs205_ass4.game.chef.ChefConstants
 import com.example.cs205_ass4.game.chef.ChefState
 import com.example.cs205_ass4.utils.SelectionUtils
 import com.example.cs205_ass4.game.kitchen.KitchenConstants
+import androidx.core.graphics.toColorInt
 
 class GameRenderer(private val activity: Activity, private val gameEngine: GameEngine) {
     private lateinit var chefImageList: List<ImageView>
@@ -91,7 +94,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
                 if (grillCount - burgerValue >= 0) {
                     // Deduct the burger's value from the grill capacity
                     grillCount -= burgerValue
-                    grillCapacityTextView.text = "Capacity: $grillCount"
+                    "Capacity: $grillCount".also { grillCapacityTextView.text = it }
 
                     // Mark this burger as having been transferred to a chef.
                     burgerWrapper.setTag(R.id.burger_transferred, true)
@@ -101,7 +104,6 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
                     gameEngine.setChefState(chefId, ChefState.COOKING)
                     // Start the layering process.
                     startBurgerLayering(burgerWrapper, chefId)
-                } else {
                 }
             }
         }
@@ -144,7 +146,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
                         val burgerValue = burgerWrapper.getTag(R.id.burger_value) as? Int ?: 0
                         if (transferred && burgerWrapper.parent != null) {
                             grillCount = (grillCount + burgerValue)
-                            grillCapacityTextView.text = "Capacity: $grillCount"
+                            "Capacity: $grillCount".also { grillCapacityTextView.text = it }
                             burgerWrapper.setTag(R.id.burger_transferred, false)
                         }
 
@@ -153,8 +155,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
                         // For example, if your gameEngine has a method:
                         // — FIX A: take the order out of the decay tracker —
                         val burgerId = burgerWrapper.tag as? Int ?: return@postDelayed
-//                        gameEngine.kitchenManager.removeOrder(burgerId)
-
+                        gameEngine.kitchenManager.removeOrder(burgerId)
                         gameEngine.incrementBurgerCooked()
                         // Alternatively, if you keep a local cooked count variable:
                         // cookedCount++ and then update burgerCounterTextView.text = "Burgers Cooked: $cookedCount"
@@ -185,7 +186,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         chefImageList = listOf(chef1, chef2, chef3, chef4)
 
         grillCapacityTextView = activity.findViewById(R.id.textViewGrillCapacity)
-        grillCapacityTextView.text = "Capacity: $grillCount"
+        "Capacity: $grillCount".also { grillCapacityTextView.text = it }
 
         burgerContainer = activity.findViewById(R.id.burgerContainer)
         kitchenCounter = activity.findViewById(R.id.kitchenCounter)
@@ -199,16 +200,23 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
 
         // Set callback to update the "cooked" counter.
         gameEngine.setOnBurgerCookedCallback { count ->
-            activity.runOnUiThread { burgerCounterTextView.text = "Burgers Cooked: $count" }
+            activity.runOnUiThread { "Burgers Cooked: $count".also { burgerCounterTextView.text = it } }
         }
 
         // Set callback to update the "expired" counter.
         gameEngine.setOnBurgerExpiredCountChangedCallback { count ->
-            activity.runOnUiThread { burgerExpiredTextView.text = "Burgers Expired: $count" }
+            activity.runOnUiThread { "Burgers Expired: $count".also { burgerExpiredTextView.text = it } }
+        }
+
+        // Set callback to update the decay progress bars
+        gameEngine.setOnBurgerFreshnessUpdatedCallback { freshnessByBurgerId ->
+            activity.runOnUiThread {
+                updateBurgerFreshness(freshnessByBurgerId)
+            }
         }
 
         // Set callback to update chef image when state changes.
-        gameEngine.setOnChefStateChangedCallback { chefId, state ->
+        gameEngine.setOnChefStateChangedCallback { chefId, _ ->
             activity.runOnUiThread {
                 val chefView = chefImageList.find { (it.tag as? Int) == chefId }
                 chefView?.let { updateChefImage(it, chefId) }
@@ -230,6 +238,22 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         decayHandler.post(decayRunnable)
     }
 
+    // New method to update burger freshness UI
+    private fun updateBurgerFreshness(freshnessByBurgerId: Map<Int, Float>) {
+        for ((burgerId, freshness) in freshnessByBurgerId) {
+            val decayBar = mapProgressBar[burgerId] ?: continue
+            val progress = (freshness * 100).toInt()
+            decayBar.progress = progress
+            decayBar.progressDrawable?.setTint(
+                when {
+                    freshness > 0.7f -> Color.GREEN
+                    freshness > 0.3f -> "#FFA500".toColorInt()
+                    else -> Color.RED
+                }
+            )
+        }
+    }
+
     private fun updateDecay() {
         for (burgerId in mapProgressBar.keys) {
             val decayBar = mapProgressBar[burgerId]
@@ -241,9 +265,9 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
             decayBar?.progress = progress
             decayBar?.progressDrawable?.setTint(
                     when {
-                        freshnessPercentage > 0.7f -> android.graphics.Color.GREEN
-                        freshnessPercentage > 0.3f -> android.graphics.Color.parseColor("#FFA500")
-                        else -> android.graphics.Color.RED
+                        freshnessPercentage > 0.7f -> Color.GREEN
+                        freshnessPercentage > 0.3f -> "#FFA500".toColorInt()
+                        else -> Color.RED
                     }
             )
         }
@@ -251,9 +275,10 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
 
     // Add this method to stop updates when no longer needed
     fun stopDecayUpdates() {
-        decayHandler.removeCallbacks(decayRunnable)
+//        decayHandler.removeCallbacks(decayRunnable)
     }
 
+    @SuppressLint("DiscouragedApi")
     private fun setupGridPositions() {
         gridPositions.clear()
         val tempList = mutableListOf<PointF>()
@@ -300,7 +325,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
                     val burgerValue = view.getTag(R.id.burger_value) as? Int ?: 0
                     // 2) clamp against MAX_GRILL_CAPACITY, not grillCount
                     grillCount = (grillCount + burgerValue)
-                    grillCapacityTextView.text = "Capacity: $grillCount"
+                    "Capacity: $grillCount".also { grillCapacityTextView.text = it }
                     // 3) clear the flag so we can’
                     view.setTag(R.id.burger_transferred, false)
                 }
@@ -376,7 +401,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
             id = View.generateViewId()
             text = burgerValue.toString()
             textSize = 15f
-            setTextColor(android.graphics.Color.BLACK)
+            setTextColor(Color.BLACK)
             layoutParams = RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.WRAP_CONTENT,
                 RelativeLayout.LayoutParams.WRAP_CONTENT
