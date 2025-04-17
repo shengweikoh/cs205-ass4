@@ -81,6 +81,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
             if (burgerWrapper != null && targetView is ImageView) {
                 // Retrieve the burger's numeric value using its tag.
                 val burgerValue = burgerWrapper.getTag(R.id.burger_value) as? Int ?: 0
+                val chefId = (targetView.tag as? Int) ?: 0
 
                 // Check if deducting this burger's value would cause the grill capacity to go negative.
                 if (grillCount - burgerValue >= 0) {
@@ -93,18 +94,19 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
 
                     // Teleport the burger container so that it appears below the selected chef.
                     teleportBurgerToChef(burgerWrapper, targetView)
+                    gameEngine.setChefState(chefId, ChefState.COOKING)
                     // Start the layering process.
-                    startBurgerLayering(burgerWrapper)
+                    startBurgerLayering(burgerWrapper, chefId)
                 } else {
                 }
             }
         }
     )
 
-    private fun startBurgerLayering(burgerWrapper: RelativeLayout) {
+    private fun startBurgerLayering(burgerWrapper: RelativeLayout, chefId: Int) {
         // Retrieve the burger image from the burgerWrapper.
         // We assume it's the second child added (index 1).
-        val burgerView = burgerWrapper.getChildAt(1) as? ImageView ?: return
+        val burgerView = burgerWrapper.getChildAt(0) as? ImageView ?: return
 
         // Define the layering sequence.
         // Note: burger_bottom is initially set in spawnBurgerView, so we start layering from bottom.
@@ -126,11 +128,13 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
                     // Update the burger image to the next layer.
                     burgerView.setImageResource(layeringSequence[currentStep])
                     currentStep++
-                    // Schedule next update after 1.5 seconds.
+                    // Schedule next update after 1 second.
                     layeringHandler.postDelayed(this, 1000)
                 } else {
                     // Layering complete (burger_top reached); wait a moment then remove the burger.
                     layeringHandler.postDelayed({
+                        // reset chef to idle
+                        gameEngine.setChefState(chefId, ChefState.IDLE)
                         // Before removal, check if this burger was transferred.
                         val transferred = burgerWrapper.getTag(R.id.burger_transferred) as? Boolean ?: false
                         val burgerValue = burgerWrapper.getTag(R.id.burger_value) as? Int ?: 0

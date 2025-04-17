@@ -109,8 +109,9 @@ class GameEngine {
         return chefManager.getChefById(chefId)?.chefState ?: ChefState.IDLE
     }
 
-    fun toggleChefState(chefId: Int) {
-        chefManager.toggleChef(chefId)
+    fun setChefState(chefId: Int, chefState: ChefState) {
+        chefManager.toggleChef(chefId, chefState)
+        onChefStateChangedCallback?.invoke(chefId, chefState)
     }
 
     fun incrementBurgerCooked() {

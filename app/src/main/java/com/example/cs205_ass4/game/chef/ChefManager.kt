@@ -28,14 +28,9 @@ class ChefManager {
         }
     }
 
-    fun toggleChef(chefId: Int) {
-        val chef = getChefById(chefId)
-        chef?.let {
-            it.chefState = if (it.chefState == ChefState.IDLE) {
-                ChefState.COOKING
-            } else {
-                ChefState.IDLE
-            }
+    fun toggleChef(chefId: Int, chefState: ChefState) {
+        getChefById(chefId)?.let { chef ->
+            chef.chefState = chefState
         }
     }
 
