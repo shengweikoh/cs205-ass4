@@ -45,6 +45,24 @@ class KitchenCounter() {
     fun getAllFood(): List<Expirable> {
         return allFood.toList()
     }
+    /**
+     * Remove the order with the given ID from the queue.
+     * @return true if an order was removed, false otherwise.
+     */
+//    fun removeOrder(orderId: Int): Boolean {
+//        synchronized(lock) {
+//            return orders.removeIf { it.id == orderId }
+//        }
+//    }
+
+
+//    fun getOrders(): List<Order> {
+//        return orders.toList()
+//    }
+//
+//    fun setOnOrdersExpiredCallback(callback: (List<Int>) -> Unit) {
+//        onOrdersExpiredCallback = callback
+//    }
 
     fun stop() {
         isRunning = false

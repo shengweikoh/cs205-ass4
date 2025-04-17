@@ -73,6 +73,10 @@ class GameEngine {
 
         // Notify about expired burgers
         if (expiredBurgerIds.isNotEmpty()) {
+            // 1) Increment the expired count by however many expired.
+            expiredBurgerCounter += expiredBurgerIds.size
+            // 2) Notify the "expired burger count changed" callback, so the UI can update.
+            onBurgerExpiredCountChangedCallback?.invoke(expiredBurgerCounter)
             onBurgersExpiredCallback?.invoke(expiredBurgerIds)
         }
     }
@@ -107,6 +111,11 @@ class GameEngine {
 
     fun toggleChefState(chefId: Int) {
         chefManager.toggleChef(chefId)
+    }
+
+    fun incrementBurgerCooked() {
+        cookedBurgerCounter++
+        onBurgerCookedCallback?.invoke(cookedBurgerCounter)
     }
 
     fun spawnBurger(): Int {
