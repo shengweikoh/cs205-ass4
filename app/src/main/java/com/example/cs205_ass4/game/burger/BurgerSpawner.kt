@@ -1,0 +1,54 @@
+package com.example.cs205_ass4.game.burger
+
+import android.graphics.PointF
+import android.os.Handler
+import android.os.Looper
+import android.widget.FrameLayout
+import com.example.cs205_ass4.game.GameEngine
+import com.example.cs205_ass4.game.kitchen.GridManager
+
+class BurgerSpawner(
+        private val gameEngine: GameEngine,
+        private val burgerRenderer: BurgerRenderer,
+        private val gridManager: GridManager,
+        private val burgerContainer: FrameLayout
+) {
+    // Handler to schedule burger spawns on the main thread
+    private val handler = Handler(Looper.getMainLooper())
+
+    fun startSpawning() {
+        scheduleBurgerSpawn()
+    }
+
+    private fun scheduleBurgerSpawn() {
+        handler.postDelayed(
+                {
+                    spawnBurger()
+                    scheduleBurgerSpawn()
+                },
+                3000
+        )
+    }
+
+    private fun spawnBurger() {
+        // Ask the game engine to create a new burger entity
+        val burgerId = gameEngine.spawnBurger()
+
+        // Generate a random burger value between 1 and 5
+        val burgerValue = (1..5).random()
+
+        // Find an empty grid slot to place the burger
+        val gridIndex = gridManager.findFirstEmptyGridIndex(burgerContainer)
+
+        // Get the position for this grid index
+        val gridPosition: PointF =
+                gridManager.getPositionForIndex(gridIndex, burgerContainer.childCount)
+
+        // Create the burger UI
+        burgerRenderer.spawnBurgerView(burgerId, burgerValue, gridPosition, gridIndex)
+    }
+
+    fun stopSpawning() {
+        handler.removeCallbacksAndMessages(null)
+    }
+}

@@ -57,6 +57,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Lost Burger Counter (top left) -->
+    <TextView
+        android:id="@+id/textViewBurgersLost"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Burgers Lost: 0"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="40dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- Chef 1 -->
     <ImageView
         android:id="@+id/imageViewChef1"

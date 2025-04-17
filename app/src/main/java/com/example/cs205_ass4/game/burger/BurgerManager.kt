@@ -19,4 +19,8 @@ class BurgerManager {
     fun removeBurger(id: Int) {
         burgers.remove(id)
     }
+
+    fun getAllBurgerIds(): List<Int> {
+        return burgers.map { it.key }
+    }
 }
