@@ -18,6 +18,7 @@ class GameEngine {
     var burgerCounter = 0
     var cookedBurgerCounter = 0
     var expiredBurgerCounter = 0
+    var lostBurgerCounter = 0
 
     // Handler for the game loop and delayed tasks.
     private val handler = Handler(Looper.getMainLooper())
@@ -33,6 +34,8 @@ class GameEngine {
     private var onChefStateChangedCallback: ((Int, ChefState) -> Unit)? = null
     // Callback for when the expired burger counter changes.
     private var onBurgerExpiredCountChangedCallback: ((Int) -> Unit)? = null
+    // Callback for when a burger is lost due to overflow
+    private var onBurgerLostCallback: ((Int) -> Unit)? = null
 
     init {
         // Spawn initial chefs.
@@ -44,9 +47,7 @@ class GameEngine {
         // Set up kitchen manager callbacks
         kitchenManager.setOnBurgerExpiredCallback { expiredBurgerIds ->
             // When burgers expire, remove them from BurgerManager
-            expiredBurgerIds.forEach { burgerId ->
-                burgerManager.removeBurger(burgerId)
-            }
+            expiredBurgerIds.forEach { burgerId -> burgerManager.removeBurger(burgerId) }
 
             // Update counters
             expiredBurgerCounter += expiredBurgerIds.size
@@ -59,7 +60,7 @@ class GameEngine {
         kitchenManager.setOnBurgerDecayedCallback { decayedBurgers ->
             // Update UI with current freshness values
             onBurgerFreshnessUpdatedCallback?.invoke(
-                decayedBurgers.associate { it.id to it.freshnessPercentage }
+                    decayedBurgers.associate { it.id to it.freshnessPercentage }
             )
         }
     }
@@ -72,11 +73,11 @@ class GameEngine {
 
     private fun scheduleUpdate() {
         handler.postDelayed(
-            {
-                updateGame()
-                scheduleUpdate() // Schedule the next update
-            },
-            GAME_ENGINE_UPDATE_INTERVAL
+                {
+                    updateGame()
+                    scheduleUpdate() // Schedule the next update
+                },
+                GAME_ENGINE_UPDATE_INTERVAL
         )
     }
 
@@ -112,6 +113,11 @@ class GameEngine {
         onBurgerExpiredCountChangedCallback = callback
     }
 
+    // Callback setter for lost burger count changes
+    fun setOnBurgerLostCallback(callback: (Int) -> Unit) {
+        onBurgerLostCallback = callback
+    }
+
     fun getChefState(chefId: Int): ChefState {
         return chefManager.getChefById(chefId)?.chefState ?: ChefState.IDLE
     }
@@ -124,6 +130,11 @@ class GameEngine {
     fun incrementBurgerCooked() {
         cookedBurgerCounter++
         onBurgerCookedCallback?.invoke(cookedBurgerCounter)
+    }
+
+    fun incrementBurgerLost() {
+        lostBurgerCounter++
+        onBurgerLostCallback?.invoke(lostBurgerCounter)
     }
 
     fun spawnBurger(): Int {

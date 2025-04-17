@@ -1,32 +1,23 @@
 package com.example.cs205_ass4.game
 
 import android.app.Activity
-import android.graphics.Color
-import android.graphics.PointF
 import android.os.Handler
 import android.os.Looper
 import android.view.View
 import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
-import androidx.core.graphics.toColorInt
-import com.bumptech.glide.Glide
 import com.example.cs205_ass4.R
-import com.example.cs205_ass4.game.burger.BurgerConstants
+import com.example.cs205_ass4.game.GameEngine
 import com.example.cs205_ass4.game.burger.BurgerLayeringManager
 import com.example.cs205_ass4.game.burger.BurgerRenderer
 import com.example.cs205_ass4.game.burger.BurgerSpawner
 import com.example.cs205_ass4.game.chef.ChefRenderer
-import com.example.cs205_ass4.game.chef.ChefState
 import com.example.cs205_ass4.game.kitchen.GridManager
 import com.example.cs205_ass4.game.kitchen.GrillManager
-import com.example.cs205_ass4.game.kitchen.KitchenConstants
 import com.example.cs205_ass4.game.ui.BurgerInteractionHandler
-import com.example.cs205_ass4.utils.SelectionUtils
 
-//class GameRenderer(private val activity: Activity, private val gameEngine: GameEngine) {
+// class GameRenderer(private val activity: Activity, private val gameEngine: GameEngine) {
 //    private lateinit var chefImageList: List<ImageView>
 //    private lateinit var burgerCounterTextView: TextView
 //    private lateinit var burgerExpiredTextView: TextView
@@ -126,7 +117,8 @@ import com.example.cs205_ass4.utils.SelectionUtils
 //                                if (grillCount - burgerValue >= 0) {
 //                                    // Deduct the burger's value from the grill capacity
 //                                    grillCount -= burgerValue
-//                                    "Capacity: $grillCount".also { grillCapacityTextView.text = it }
+//                                    "Capacity: $grillCount".also { grillCapacityTextView.text = it
+// }
 //
 //                                    // Mark this burger as having been transferred to a chef.
 //                                    burgerWrapper.setTag(R.id.burger_transferred, true)
@@ -174,7 +166,8 @@ import com.example.cs205_ass4.utils.SelectionUtils
 //                            // Schedule next update after 1 second.
 //                            layeringHandler.postDelayed(this, 1000)
 //                        } else {
-//                            // Layering complete (burger_top reached); wait a moment then remove the
+//                            // Layering complete (burger_top reached); wait a moment then remove
+// the
 //                            // burger.
 //                            layeringHandler.postDelayed(
 //                                    {
@@ -186,7 +179,8 @@ import com.example.cs205_ass4.utils.SelectionUtils
 //                                                        Boolean
 //                                                        ?: false
 //                                        val burgerValue =
-//                                                burgerWrapper.getTag(R.id.burger_value) as? Int ?: 0
+//                                                burgerWrapper.getTag(R.id.burger_value) as? Int ?:
+// 0
 //                                        if (transferred && burgerWrapper.parent != null) {
 //                                            grillCount = (grillCount + burgerValue)
 //                                            "Capacity: $grillCount".also {
@@ -203,8 +197,10 @@ import com.example.cs205_ass4.utils.SelectionUtils
 //                                                burgerWrapper.tag as? Int ?: return@postDelayed
 //                                        gameEngine.kitchenManager.removeOrder(burgerId)
 //                                        gameEngine.incrementBurgerCooked()
-//                                        // Alternatively, if you keep a local cooked count variable:
-//                                        // cookedCount++ and then update burgerCounterTextView.text
+//                                        // Alternatively, if you keep a local cooked count
+// variable:
+//                                        // cookedCount++ and then update
+// burgerCounterTextView.text
 //                                        // = "Burgers Cooked: $cookedCount"
 //                                    },
 //                                    100
@@ -269,7 +265,8 @@ import com.example.cs205_ass4.utils.SelectionUtils
 //        for (i in 0 until maxGridSlots) {
 //            val slotView =
 //                    activity.findViewById<View>(
-//                            activity.resources.getIdentifier("slot_$i", "id", activity.packageName)
+//                            activity.resources.getIdentifier("slot_$i", "id",
+// activity.packageName)
 //                    )
 //
 //            slotView.post {
@@ -448,14 +445,14 @@ import com.example.cs205_ass4.utils.SelectionUtils
 //        selectBurgerToChef.cleanup()
 //        gameRendererRefactored.cleanup()
 //    }
-//}
-
+// }
 
 class GameRenderer(private val activity: Activity, private val gameEngine: GameEngine) {
 
     // UI Elements
     private lateinit var burgerCounterTextView: TextView
     private lateinit var burgerExpiredTextView: TextView
+    private lateinit var burgerLostTextView: TextView
     private lateinit var burgerContainer: FrameLayout
     private lateinit var kitchenCounter: RelativeLayout
     private lateinit var fridge: View
@@ -473,12 +470,12 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     // Decay handler
     private val decayHandler = Handler(Looper.getMainLooper())
     private val decayRunnable =
-        object : Runnable {
-            override fun run() {
-                updateDecay()
-                decayHandler.postDelayed(this, 100) // 10 times per second
+            object : Runnable {
+                override fun run() {
+                    updateDecay()
+                    decayHandler.postDelayed(this, 100) // 10 times per second
+                }
             }
-        }
 
     fun setupUI() {
         // Initialize UI elements
@@ -486,6 +483,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         kitchenCounter = activity.findViewById(R.id.kitchenCounter)
         burgerCounterTextView = activity.findViewById(R.id.textViewBurgerCounter)
         burgerExpiredTextView = activity.findViewById(R.id.textViewBurgerExpired)
+        burgerLostTextView = activity.findViewById(R.id.textViewBurgersLost)
         fridge = activity.findViewById(R.id.fridge)
         grillCapacityTextView = activity.findViewById(R.id.textViewGrillCapacity)
 
@@ -498,15 +496,15 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
 
         // Initialize interaction handler
         burgerInteractionHandler =
-            BurgerInteractionHandler(
-                burgerContainer,
-                gameEngine,
-                burgerRenderer,
-                chefRenderer,
-                grillManager,
-                burgerLayeringManager,
-                fridge
-            )
+                BurgerInteractionHandler(
+                        burgerContainer,
+                        gameEngine,
+                        burgerRenderer,
+                        chefRenderer,
+                        grillManager,
+                        burgerLayeringManager,
+                        fridge
+                )
 
         // Setup the interaction handler
         burgerInteractionHandler.setup()
@@ -544,6 +542,11 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
             activity.runOnUiThread {
                 "Burgers Expired: $count".also { burgerExpiredTextView.text = it }
             }
+        }
+
+        // Setup callback to update the "lost" counter
+        gameEngine.setOnBurgerLostCallback { count ->
+            activity.runOnUiThread { "Burgers Lost: $count".also { burgerLostTextView.text = it } }
         }
 
         // Setup callback to update the decay progress bars
@@ -592,4 +595,3 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         gameEngine.quitGame()
     }
 }
-

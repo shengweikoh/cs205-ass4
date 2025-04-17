@@ -17,9 +17,14 @@ class GridManager(
     private val maxGridSlots = KitchenConstants.MAX_ORDERS
 
     private var onGridSetupComplete: (() -> Unit)? = null
+    private var onBurgerLost: (() -> Unit)? = null
 
     fun setOnGridSetupCompleteListener(listener: () -> Unit) {
         onGridSetupComplete = listener
+    }
+    
+    fun setOnBurgerLostListener(listener: () -> Unit) {
+        onBurgerLost = listener
     }
 
     @SuppressLint("DiscouragedApi")
@@ -65,13 +70,12 @@ class GridManager(
         return (0 until maxGridSlots).firstOrNull { it !in usedIndices } ?: -1
     }
 
-    fun getPositionForIndex(gridIndex: Int, childCount: Int): PointF {
+    fun getPositionForIndex(gridIndex: Int, childCount: Int): PointF? {
         return if (gridIndex == -1) {
-            // Overflow: stack horizontally along the bottom
-            val overflowIndex = childCount - maxGridSlots
-            val overflowX = 20f + (overflowIndex * 160f)
-            val overflowY = burgerContainer.height - 150f - 20f
-            PointF(overflowX, overflowY)
+            // Notify that a burger was lost due to overflow
+            onBurgerLost?.invoke()
+            // Return null to indicate that this burger should not be displayed
+            null
         } else {
             gridPositions[gridIndex]
         }

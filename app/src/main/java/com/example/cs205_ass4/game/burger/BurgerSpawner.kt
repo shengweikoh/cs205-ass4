@@ -17,6 +17,9 @@ class BurgerSpawner(
     private val handler = Handler(Looper.getMainLooper())
 
     fun startSpawning() {
+        // Set up the burger loss listener
+        gridManager.setOnBurgerLostListener { gameEngine.incrementBurgerLost() }
+
         scheduleBurgerSpawn()
     }
 
@@ -41,11 +44,16 @@ class BurgerSpawner(
         val gridIndex = gridManager.findFirstEmptyGridIndex(burgerContainer)
 
         // Get the position for this grid index
-        val gridPosition: PointF =
+        val gridPosition: PointF? =
                 gridManager.getPositionForIndex(gridIndex, burgerContainer.childCount)
 
-        // Create the burger UI
-        burgerRenderer.spawnBurgerView(burgerId, burgerValue, gridPosition, gridIndex)
+        // Create the burger UI only if we have a valid position
+        if (gridPosition != null) {
+            burgerRenderer.spawnBurgerView(burgerId, burgerValue, gridPosition, gridIndex)
+        } else {
+            // If no position is available, the burger is lost but the callback
+            // in GridManager will already have triggered
+        }
     }
 
     fun stopSpawning() {
