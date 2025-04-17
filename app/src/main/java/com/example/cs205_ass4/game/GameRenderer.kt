@@ -27,6 +27,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     private lateinit var burgerExpiredTextView: TextView
     private lateinit var burgerContainer: FrameLayout
     private lateinit var kitchenCounter: RelativeLayout
+    private lateinit var fridge: View
     // Map of burger id to progress bar
     private val mapProgressBar = mutableMapOf<Int, ProgressBar>()
     // Handler to schedule burger spawns on the main thread.
@@ -77,34 +78,49 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
 
         onTargetInteraction = { burgerId, targetView ->
 
-            // TODO: To Change @ShengWei/LeeMin
-            // Logic to assign burger to chef goes here
-            // Get the burger container using its tag.
-            // don’t assign if chef is already cooking
-            val chefId = (targetView.tag as? Int) ?: 0
-            if (gameEngine.getChefState(chefId) != ChefState.IDLE) return@SelectionManager
+            if (targetView == fridge) {
+                val burgerWrapper = burgerContainer.findViewWithTag<View>(burgerId) as? RelativeLayout ?: return@SelectionManager
 
-            val burgerWrapper = burgerContainer.findViewWithTag<View>(burgerId) as? RelativeLayout
-            if (burgerWrapper != null && targetView is ImageView) {
-                // Retrieve the burger's numeric value using its tag.
-                val burgerValue = burgerWrapper.getTag(R.id.burger_value) as? Int ?: 0
+                // Move burger to the bottom area
+                val bottomY = burgerContainer.height - 180f  // adjust as needed
+                val xPos = 20f + (burgerContainer.childCount * 160f) % (burgerContainer.width - 160f)
+
+                burgerWrapper.x = xPos
+                burgerWrapper.y = bottomY
+
+                burgerWrapper.setTag(R.id.burger_transferred, true)
+                return@SelectionManager
+            } else {
+                // TODO: To Change @ShengWei/LeeMin
+                // Logic to assign burger to chef goes here
+                // Get the burger container using its tag.
+                // don’t assign if chef is already cooking
+                val chefId = (targetView.tag as? Int) ?: 0
+                if (gameEngine.getChefState(chefId) != ChefState.IDLE) return@SelectionManager
+
+                val burgerWrapper = burgerContainer.findViewWithTag<View>(burgerId) as? RelativeLayout
+                if (burgerWrapper != null && targetView is ImageView) {
+                    // Retrieve the burger's numeric value using its tag.
+                    val burgerValue = burgerWrapper.getTag(R.id.burger_value) as? Int ?: 0
 
 
-                // Check if deducting this burger's value would cause the grill capacity to go negative.
-                if (grillCount - burgerValue >= 0) {
-                    // Deduct the burger's value from the grill capacity
-                    grillCount -= burgerValue
-                    "Capacity: $grillCount".also { grillCapacityTextView.text = it }
+                    // Check if deducting this burger's value would cause the grill capacity to go negative.
+                    if (grillCount - burgerValue >= 0) {
+                        // Deduct the burger's value from the grill capacity
+                        grillCount -= burgerValue
+                        "Capacity: $grillCount".also { grillCapacityTextView.text = it }
 
-                    // Mark this burger as having been transferred to a chef.
-                    burgerWrapper.setTag(R.id.burger_transferred, true)
+                        // Mark this burger as having been transferred to a chef.
+                        burgerWrapper.setTag(R.id.burger_transferred, true)
 
-                    // Teleport the burger container so that it appears below the selected chef.
-                    teleportBurgerToChef(burgerWrapper, targetView)
-                    gameEngine.setChefState(chefId, ChefState.COOKING)
-                    // Start the layering process.
-                    startBurgerLayering(burgerWrapper, chefId)
-                }
+                        // Teleport the burger container so that it appears below the selected chef.
+                        teleportBurgerToChef(burgerWrapper, targetView)
+                        gameEngine.setChefState(chefId, ChefState.COOKING)
+                        // Start the layering process.
+                        startBurgerLayering(burgerWrapper, chefId)
+                    }
+            }
+
             }
         }
     )
@@ -194,6 +210,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         // Bind the counter TextViews.
         burgerCounterTextView = activity.findViewById(R.id.textViewBurgerCounter)
         burgerExpiredTextView = activity.findViewById(R.id.textViewBurgerExpired)
+        fridge = activity.findViewById(R.id.fridge)
 
         // Set up grid positions after layout
         kitchenCounter.post { setupGridPositions() }
@@ -233,6 +250,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         selectBurgerToChef.registerInteractionTarget(chef2)
         selectBurgerToChef.registerInteractionTarget(chef3)
         selectBurgerToChef.registerInteractionTarget(chef4)
+        selectBurgerToChef.registerInteractionTarget(fridge)
 
         // Start decay updates
         decayHandler.post(decayRunnable)
