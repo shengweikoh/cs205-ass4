@@ -77,11 +77,15 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
             // TODO: To Change @ShengWei/LeeMin
             // Logic to assign burger to chef goes here
             // Get the burger container using its tag.
+            // don’t assign if chef is already cooking
+            val chefId = (targetView.tag as? Int) ?: 0
+            if (gameEngine.getChefState(chefId) != ChefState.IDLE) return@SelectionManager
+
             val burgerWrapper = burgerContainer.findViewWithTag<View>(burgerId) as? RelativeLayout
             if (burgerWrapper != null && targetView is ImageView) {
                 // Retrieve the burger's numeric value using its tag.
                 val burgerValue = burgerWrapper.getTag(R.id.burger_value) as? Int ?: 0
-                val chefId = (targetView.tag as? Int) ?: 0
+
 
                 // Check if deducting this burger's value would cause the grill capacity to go negative.
                 if (grillCount - burgerValue >= 0) {
