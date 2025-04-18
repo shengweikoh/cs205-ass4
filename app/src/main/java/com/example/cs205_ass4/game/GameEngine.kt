@@ -75,9 +75,8 @@ class GameEngine {
         handler.postDelayed(
                 {
                     updateGame()
-                    if (!gamePaused) {
-                        scheduleUpdate() // Schedule the next update only if game is not paused
-                    }
+                    scheduleUpdate() // Always schedule the next update to keep background processes
+                    // running
                 },
                 GAME_ENGINE_UPDATE_INTERVAL
         )
@@ -85,11 +84,17 @@ class GameEngine {
 
     // Called on each game tick/update
     fun updateGame() {
+        // Update the chef states only if the game is not paused
         if (!gamePaused) {
             chefManager.updateChefs() // Update chef states, positions, etc.
 
             // Additional game logic (e.g., collision detection, scoring) goes here
         }
+
+        // Always run background processes regardless of pause state
+        // (e.g., grill capacity updates, burger freshness calculations)
+
+        // Add any additional non-UI background updates here
     }
 
     // Register for burger expiration callbacks
@@ -162,21 +167,16 @@ class GameEngine {
     // Tracks whether the game is currently paused
     private var gamePaused = false
 
-    /** Pauses the game logic and updates */
+    /** Pauses the game UI interactions without affecting background processes */
     fun pauseGame() {
         gamePaused = true
-        // Remove pending update callbacks
-        handler.removeCallbacksAndMessages(null)
-        // We could also pause chef animations and other game elements here
+        // We're only setting the flag to prevent UI interactions
+        // but we're not removing callbacks to keep background processes running
     }
 
-    /** Resumes the game logic and updates after being paused */
+    /** Resumes the game UI interactions */
     fun resumeGame() {
-        if (gamePaused) {
-            gamePaused = false
-            // Restart the game update loop
-            scheduleUpdate()
-            // We could also resume chef animations and other game elements here
-        }
+        gamePaused = false
+        // Simply restore the flag to allow UI interactions again
     }
 }
