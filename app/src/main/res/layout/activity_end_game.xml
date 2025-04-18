@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/fireworksAnimation"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:lottie_fileName="fireworks.json"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        android:alpha="0.5"/>
+
+
+    <!-- Your scrollable credits on top -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/textTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="GAME OVER"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Counters -->
+            <TextView
+                android:id="@+id/textCompleted"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Burgers Completed: 0"
+                android:textSize="20sp"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/textLost"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Burgers Lost: 0"
+                android:textSize="20sp"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/textExpired"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Burgers Expired: 0"
+                android:textSize="20sp"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- Credits -->
+            <TextView
+                android:id="@+id/textCredits"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Credits go here"
+                android:textSize="18sp"
+                android:textColor="@android:color/black"/>
+
+            <Button
+                android:id="@+id/buttonRestart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Restart Game"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="24dp"/>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

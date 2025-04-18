@@ -16,6 +16,9 @@ import com.example.cs205_ass4.game.kitchen.FridgeGridManager
 import com.example.cs205_ass4.game.kitchen.GridManager
 import com.example.cs205_ass4.game.kitchen.GrillManager
 import com.example.cs205_ass4.game.ui.BurgerInteractionHandler
+import android.content.Intent
+import com.example.cs205_ass4.EndGameActivity
+
 
 class GameRenderer(private val activity: Activity, private val gameEngine: GameEngine) {
 
@@ -38,6 +41,9 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     private lateinit var burgerSpawner: BurgerSpawner
     private lateinit var burgerLayeringManager: BurgerLayeringManager
     private lateinit var burgerInteractionHandler: BurgerInteractionHandler
+
+    //trigger gameover
+    private var gameOverTriggered = false
 
     fun setupUI() {
         // Initialize UI elements
@@ -116,12 +122,14 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         gameEngine.setOnBurgerExpiredCountChangedCallback { count ->
             activity.runOnUiThread {
                 "Burgers Expired: $count".also { burgerExpiredTextView.text = it }
+                checkGameOver()
             }
         }
 
         // Setup callback to update the "lost" counter
         gameEngine.setOnBurgerLostCallback { count ->
             activity.runOnUiThread { "Burgers Lost: $count".also { burgerLostTextView.text = it } }
+            checkGameOver()
         }
 
         // Setup callback to update the decay progress bars
@@ -158,4 +166,28 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         burgerInteractionHandler.cleanup()
         gameEngine.quitGame()
     }
+
+    private fun checkGameOver() {
+        // only fire once
+        if (gameOverTriggered) return
+
+        val totalMissed = gameEngine.expiredBurgerCounter + gameEngine.lostBurgerCounter
+        if (totalMissed >= 10) {
+            gameOverTriggered = true
+
+            // stop game logic
+            burgerSpawner.stopSpawning()
+            gameEngine.quitGame()
+
+            // launch credits
+            val intent = Intent(activity, EndGameActivity::class.java).apply {
+                putExtra(EndGameActivity.EXTRA_COMPLETED, gameEngine.cookedBurgerCounter)
+                putExtra(EndGameActivity.EXTRA_LOST,      gameEngine.lostBurgerCounter)
+                putExtra(EndGameActivity.EXTRA_EXPIRED,   gameEngine.expiredBurgerCounter)
+            }
+            activity.startActivity(intent)
+            activity.finish()
+        }
+    }
+
 }

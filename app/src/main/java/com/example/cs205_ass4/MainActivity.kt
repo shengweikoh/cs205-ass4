@@ -1,6 +1,7 @@
 package com.example.cs205_ass4
 
 import android.os.Bundle
+import android.content.Intent
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -62,5 +63,16 @@ class MainActivity : AppCompatActivity() {
         gameRenderer.stopDecayUpdates()
         gameRenderer.cleanup()
         super.onDestroy()
+    }
+
+    /** Launch our EndGameActivity, passing in the three counters */
+    private fun showEndGameScreen() {
+        val intent = Intent(this, EndGameActivity::class.java).apply {
+            putExtra(EndGameActivity.EXTRA_COMPLETED, gameEngine.cookedBurgerCounter)
+            putExtra(EndGameActivity.EXTRA_LOST,      gameEngine.lostBurgerCounter)
+            putExtra(EndGameActivity.EXTRA_EXPIRED,   gameEngine.expiredBurgerCounter)
+        }
+        startActivity(intent)
+        finish()
     }
 }
