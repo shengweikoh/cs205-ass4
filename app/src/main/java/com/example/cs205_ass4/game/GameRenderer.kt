@@ -520,6 +520,9 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         // Setup the interaction handler
         burgerInteractionHandler.setup()
 
+        // Set the BurgerInteractionHandler on the BurgerRenderer
+        burgerRenderer.setInteractionHandler(burgerInteractionHandler)
+
         // Initialize burger spawner
         burgerSpawner = BurgerSpawner(gameEngine, burgerRenderer, gridManager, burgerContainer)
 

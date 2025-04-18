@@ -4,6 +4,7 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.RelativeLayout
+import android.widget.Toast
 import com.example.cs205_ass4.R
 import com.example.cs205_ass4.game.GameEngine
 import com.example.cs205_ass4.game.burger.BurgerLayeringManager
@@ -27,6 +28,9 @@ class BurgerInteractionHandler(
         private val fridgeGridManager: FridgeGridManager
 ) {
     val selectionManager: SelectionUtils.SelectionManager<Int> = createSelectionManager()
+    
+    // Set to track burger IDs that are in the fridge
+    private val burgersInFridge = mutableSetOf<Int>()
 
     private fun createSelectionManager(): SelectionUtils.SelectionManager<Int> {
         return SelectionUtils.SelectionManager(
@@ -34,7 +38,17 @@ class BurgerInteractionHandler(
                     if (targetView == fridge) {
                         handleFridgeInteraction(burgerId)
                     } else {
-                        handleChefInteraction(burgerId, targetView)
+                        // Check if burger is in fridge
+                        if (burgersInFridge.contains(burgerId)) {
+                            // Show toast message that this action is not allowed
+                            Toast.makeText(
+                                burgerContainer.context,
+                                "This action not allowed as burger is in fridge (disk)",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            handleChefInteraction(burgerId, targetView)
+                        }
                     }
                 }
         )
@@ -56,6 +70,10 @@ class BurgerInteractionHandler(
                         if (transferred) {
                             grillManager.releaseGrillCapacity(burgerValue)
                         }
+                        
+                        // Remove from fridge tracking if it was there
+                        burgersInFridge.remove(burgerId)
+                        
                         burgerContainer.findViewWithTag<View>(burgerId)?.let { view ->
                             burgerContainer.removeView(view)
                         }
@@ -88,8 +106,11 @@ class BurgerInteractionHandler(
         // Assign burger to fridge grid
         fridgeGridManager.assignBurgerToGridSlot(burgerId, gridIndex)
         
+        // Add to tracking set of burgers in fridge
+        burgersInFridge.add(burgerId)
+        
         // Move burger to the fridge grid position
-        val burgerWidth = 100  // Adjust as needed based on your burger view size
+        val burgerWidth = 150 // might need to adjust further
         val burgerHeight = 100
         burgerRenderer.moveBurgerToPosition(
             burgerWrapper, 
@@ -119,6 +140,9 @@ class BurgerInteractionHandler(
             gridManager.removeBurgerFromGrid(burgerId)
             fridgeGridManager.removeBurgerFromGrid(burgerId)
             
+            // Remove from tracking set if it was in fridge
+            burgersInFridge.remove(burgerId)
+            
             // Consume grill capacity
             grillManager.consumeGrillCapacity(burgerValue)
 
@@ -134,6 +158,11 @@ class BurgerInteractionHandler(
             // Start the layering process
             burgerLayeringManager.startBurgerLayering(burgerWrapper, chefId)
         }
+    }
+
+    fun clearFromFridge(burgerId: Int) {
+        burgersInFridge.remove(burgerId)
+        fridgeGridManager.removeBurgerFromGrid(burgerId)
     }
 
     private fun teleportBurgerToChef(burgerWrapper: View, chefView: View) {
@@ -163,5 +192,6 @@ class BurgerInteractionHandler(
 
     fun cleanup() {
         selectionManager.cleanup()
+        burgersInFridge.clear()
     }
 }

@@ -13,6 +13,7 @@ import androidx.core.graphics.toColorInt
 import com.example.cs205_ass4.R
 import com.example.cs205_ass4.game.kitchen.FridgeGridManager
 import com.example.cs205_ass4.game.kitchen.GridManager
+import com.example.cs205_ass4.game.ui.BurgerInteractionHandler
 import com.example.cs205_ass4.utils.SelectionUtils
 
 class BurgerRenderer(
@@ -27,13 +28,20 @@ class BurgerRenderer(
     // Callback to handle burger selection
     private var onBurgerSelected: ((Int, Int) -> Unit)? = null
 
+    // Reference to the interaction handler
+    private var interactionHandler: BurgerInteractionHandler? = null
+
     // Selection manager reference
     private lateinit var selectionManager: SelectionUtils.SelectionManager<Int>
+
+    fun setInteractionHandler(handler: BurgerInteractionHandler) {
+        this.interactionHandler = handler
+    }
 
     fun setGridManager(manager: GridManager) {
         this.gridManager = manager
     }
-    
+
     fun setFridgeGridManager(manager: FridgeGridManager) {
         this.fridgeGridManager = manager
     }
@@ -162,6 +170,9 @@ class BurgerRenderer(
                 // Remove from both grids if it's still there
                 gridManager?.removeBurgerFromGrid(burgerId)
                 fridgeGridManager?.removeBurgerFromGrid(burgerId)
+                
+                // Also notify the interaction handler to clear from fridge tracking
+                interactionHandler?.clearFromFridge(burgerId)
 
                 val transferred = view.getTag(R.id.burger_transferred) as? Boolean ?: false
                 val burgerValue = view.getTag(R.id.burger_value) as? Int ?: 0
