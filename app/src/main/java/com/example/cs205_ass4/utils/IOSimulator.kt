@@ -81,7 +81,7 @@ class IOSimulator(private val context: Context, private val rootView: ViewGroup)
         overlay?.let {
             if (it.parent == null) {
                 rootView.addView(it)
-                
+
                 // Vibrate the device when overlay appears
                 vibrate()
             }
@@ -92,25 +92,28 @@ class IOSimulator(private val context: Context, private val rootView: ViewGroup)
     private fun vibrate() {
         try {
             // Get vibrator service based on Android version
-            val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-                vibratorManager.defaultVibrator
-            } else {
-                @Suppress("DEPRECATION")
-                context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            }
+            val vibrator =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        val vibratorManager =
+                                context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as
+                                        VibratorManager
+                        vibratorManager.defaultVibrator
+                    } else {
+                        @Suppress("DEPRECATION")
+                        context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                    }
 
             // Check if device can vibrate
             if (vibrator.hasVibrator()) {
                 // Create vibration effect based on Android version
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     // For Android 8.0 (API 26) and above, use VibrationEffect
-                    val vibrationEffect = VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE)
+                    val vibrationEffect =
+                            VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE)
                     vibrator.vibrate(vibrationEffect)
                 } else {
                     // For older versions
-                    @Suppress("DEPRECATION")
-                    vibrator.vibrate(200)
+                    @Suppress("DEPRECATION") vibrator.vibrate(200)
                 }
             }
         } catch (e: Exception) {
