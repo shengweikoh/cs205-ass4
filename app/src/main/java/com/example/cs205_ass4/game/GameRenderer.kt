@@ -98,7 +98,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
             // Also set up the fridge grid positions
             fridgeGridManager.setupGridPositions()
 
-            gameEngine.startGame()
+//            gameEngine.startGame()
             burgerSpawner.startSpawning()
         }
         gridManager.setupGridPositions()
