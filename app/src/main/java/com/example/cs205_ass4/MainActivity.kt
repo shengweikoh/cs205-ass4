@@ -28,14 +28,15 @@ class MainActivity : AppCompatActivity() {
         gameRenderer = GameRenderer(this, gameEngine)
         gameRenderer.setupUI()
     }
-    // commented out because game will crash when these are not implemented
-    // override fun onPause() {
-    //     // TODO: Implement pause logic
-    // }
+    override fun onPause() {
+        super.onPause()
+        gameEngine.pauseGame()
+    }
 
-    // override fun onResume() {
-    //     // TODO: Implement resume logic
-    // }
+    override fun onResume() {
+        super.onResume()
+        gameEngine.resumeGame()
+    }
 
     override fun onDestroy() {
         // Clean up resources to prevent memory leaks

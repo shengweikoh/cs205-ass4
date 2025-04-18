@@ -18,6 +18,7 @@ class GameEngine {
     var burgerCounter = 0
     var cookedBurgerCounter = 0
     var expiredBurgerCounter = 0
+    var lostBurgerCounter = 0
 
     // Handler for the game loop and delayed tasks.
     private val handler = Handler(Looper.getMainLooper())
@@ -33,6 +34,8 @@ class GameEngine {
     private var onChefStateChangedCallback: ((Int, ChefState) -> Unit)? = null
     // Callback for when the expired burger counter changes.
     private var onBurgerExpiredCountChangedCallback: ((Int) -> Unit)? = null
+    // Callback for when a burger is lost due to overflow
+    private var onBurgerLostCallback: ((Int) -> Unit)? = null
 
     init {
         // Spawn initial chefs.
@@ -44,9 +47,7 @@ class GameEngine {
         // Set up kitchen manager callbacks
         kitchenManager.setOnBurgerExpiredCallback { expiredBurgerIds ->
             // When burgers expire, remove them from BurgerManager
-            expiredBurgerIds.forEach { burgerId ->
-                burgerManager.removeBurger(burgerId)
-            }
+            expiredBurgerIds.forEach { burgerId -> burgerManager.removeBurger(burgerId) }
 
             // Update counters
             expiredBurgerCounter += expiredBurgerIds.size
@@ -59,7 +60,7 @@ class GameEngine {
         kitchenManager.setOnBurgerDecayedCallback { decayedBurgers ->
             // Update UI with current freshness values
             onBurgerFreshnessUpdatedCallback?.invoke(
-                decayedBurgers.associate { it.id to it.freshnessPercentage }
+                    decayedBurgers.associate { it.id to it.freshnessPercentage }
             )
         }
     }
@@ -72,19 +73,23 @@ class GameEngine {
 
     private fun scheduleUpdate() {
         handler.postDelayed(
-            {
-                updateGame()
-                scheduleUpdate() // Schedule the next update
-            },
-            GAME_ENGINE_UPDATE_INTERVAL
+                {
+                    updateGame()
+                    if (!gamePaused) {
+                        scheduleUpdate() // Schedule the next update only if game is not paused
+                    }
+                },
+                GAME_ENGINE_UPDATE_INTERVAL
         )
     }
 
     // Called on each game tick/update
     fun updateGame() {
-        chefManager.updateChefs() // Update chef states, positions, etc.
+        if (!gamePaused) {
+            chefManager.updateChefs() // Update chef states, positions, etc.
 
-        // Additional game logic (e.g., collision detection, scoring) goes here
+            // Additional game logic (e.g., collision detection, scoring) goes here
+        }
     }
 
     // Register for burger expiration callbacks
@@ -112,6 +117,11 @@ class GameEngine {
         onBurgerExpiredCountChangedCallback = callback
     }
 
+    // Callback setter for lost burger count changes
+    fun setOnBurgerLostCallback(callback: (Int) -> Unit) {
+        onBurgerLostCallback = callback
+    }
+
     fun getChefState(chefId: Int): ChefState {
         return chefManager.getChefById(chefId)?.chefState ?: ChefState.IDLE
     }
@@ -124,6 +134,11 @@ class GameEngine {
     fun incrementBurgerCooked() {
         cookedBurgerCounter++
         onBurgerCookedCallback?.invoke(cookedBurgerCounter)
+    }
+
+    fun incrementBurgerLost() {
+        lostBurgerCounter++
+        onBurgerLostCallback?.invoke(lostBurgerCounter)
     }
 
     fun spawnBurger(): Int {
@@ -142,5 +157,26 @@ class GameEngine {
         // Stop the kitchen manager
         kitchenManager.stop()
         // there's no need to stop burger and chef managers as they do not start any threads
+    }
+
+    // Tracks whether the game is currently paused
+    private var gamePaused = false
+
+    /** Pauses the game logic and updates */
+    fun pauseGame() {
+        gamePaused = true
+        // Remove pending update callbacks
+        handler.removeCallbacksAndMessages(null)
+        // We could also pause chef animations and other game elements here
+    }
+
+    /** Resumes the game logic and updates after being paused */
+    fun resumeGame() {
+        if (gamePaused) {
+            gamePaused = false
+            // Restart the game update loop
+            scheduleUpdate()
+            // We could also resume chef animations and other game elements here
+        }
     }
 }
