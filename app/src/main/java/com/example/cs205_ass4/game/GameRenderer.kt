@@ -12,6 +12,7 @@ import com.example.cs205_ass4.game.burger.BurgerLayeringManager
 import com.example.cs205_ass4.game.burger.BurgerRenderer
 import com.example.cs205_ass4.game.burger.BurgerSpawner
 import com.example.cs205_ass4.game.chef.ChefRenderer
+import com.example.cs205_ass4.game.kitchen.FridgeGridManager
 import com.example.cs205_ass4.game.kitchen.GridManager
 import com.example.cs205_ass4.game.kitchen.GrillManager
 import com.example.cs205_ass4.game.ui.BurgerInteractionHandler
@@ -454,6 +455,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     private lateinit var burgerLostTextView: TextView
     private lateinit var burgerContainer: FrameLayout
     private lateinit var kitchenCounter: RelativeLayout
+    private lateinit var fridgeContainer: RelativeLayout
     private lateinit var fridge: View
     private lateinit var grillCapacityTextView: TextView
 
@@ -461,6 +463,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
     private lateinit var burgerRenderer: BurgerRenderer
     private lateinit var chefRenderer: ChefRenderer
     private lateinit var gridManager: GridManager
+    private lateinit var fridgeGridManager: FridgeGridManager
     private lateinit var grillManager: GrillManager
     private lateinit var burgerSpawner: BurgerSpawner
     private lateinit var burgerLayeringManager: BurgerLayeringManager
@@ -483,6 +486,7 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         burgerCounterTextView = activity.findViewById(R.id.textViewBurgerCounter)
         burgerExpiredTextView = activity.findViewById(R.id.textViewBurgerExpired)
         burgerLostTextView = activity.findViewById(R.id.textViewBurgersLost)
+        fridgeContainer = activity.findViewById(R.id.fridgeContainer)
         fridge = activity.findViewById(R.id.fridge)
         grillCapacityTextView = activity.findViewById(R.id.textViewGrillCapacity)
 
@@ -490,11 +494,13 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         burgerRenderer = BurgerRenderer(activity, burgerContainer)
         chefRenderer = ChefRenderer(activity)
         gridManager = GridManager(activity, kitchenCounter, burgerContainer)
+        fridgeGridManager = FridgeGridManager(activity, fridgeContainer, burgerContainer)
         grillManager = GrillManager(grillCapacityTextView)
         burgerLayeringManager = BurgerLayeringManager(gameEngine)
 
         // Set the GridManager on BurgerRenderer and BurgerLayeringManager
         burgerRenderer.setGridManager(gridManager)
+        burgerRenderer.setFridgeGridManager(fridgeGridManager)
         burgerLayeringManager.setGridManager(gridManager)
 
         // Initialize interaction handler
@@ -507,7 +513,8 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
                         grillManager,
                         burgerLayeringManager,
                         fridge,
-                        gridManager
+                        gridManager,
+                        fridgeGridManager
                 )
 
         // Setup the interaction handler
@@ -524,6 +531,9 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
 
         // Setup grid positions
         gridManager.setOnGridSetupCompleteListener {
+            // Also set up the fridge grid positions
+            fridgeGridManager.setupGridPositions()
+
             gameEngine.startGame()
             burgerSpawner.startSpawning()
         }

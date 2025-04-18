@@ -232,14 +232,185 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0">
+        
+        <!-- Fridge area with grid slots -->
+        <RelativeLayout
+            android:id="@+id/fridgeContainer"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_gravity="bottom"
+            android:background="#EEE"
+            android:visibility="visible">
+            
+            <!-- Row 1 of fridge slots (10 slots) -->
+            <LinearLayout
+                android:id="@+id/fridgeRow1"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_alignParentTop="true">
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_0"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_1"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_2"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_3"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_4"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_5"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_6"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_7"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_8"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_9"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+            </LinearLayout>
+            
+            <!-- Row 2 of fridge slots (10 slots) -->
+            <LinearLayout
+                android:id="@+id/fridgeRow2"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_below="@id/fridgeRow1">
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_10"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_11"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_12"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_13"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_14"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_15"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_16"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_17"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_18"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+                
+                <FrameLayout
+                    android:id="@+id/fridge_slot_19"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="#DDDDDD" />
+            </LinearLayout>
+        </RelativeLayout>
+        
+        <!-- Keep the original fridge view for interaction but make it invisible -->
         <View
             android:id="@+id/fridge"
             android:layout_width="match_parent"
             android:layout_height="100dp"
             android:layout_gravity="bottom"
-            android:background="#EEE"
+            android:background="@android:color/transparent"
             android:visibility="visible"/>
     </FrameLayout>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

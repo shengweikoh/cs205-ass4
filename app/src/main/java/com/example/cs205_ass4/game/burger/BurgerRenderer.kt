@@ -11,13 +11,15 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.core.graphics.toColorInt
 import com.example.cs205_ass4.R
+import com.example.cs205_ass4.game.kitchen.FridgeGridManager
 import com.example.cs205_ass4.game.kitchen.GridManager
 import com.example.cs205_ass4.utils.SelectionUtils
 
 class BurgerRenderer(
         private val activity: Activity,
         private val burgerContainer: FrameLayout,
-        private var gridManager: GridManager? = null
+        private var gridManager: GridManager? = null,
+        private var fridgeGridManager: FridgeGridManager? = null
 ) {
     // Map of burger id to progress bar
     private val mapProgressBar = mutableMapOf<Int, ProgressBar>()
@@ -30,6 +32,10 @@ class BurgerRenderer(
 
     fun setGridManager(manager: GridManager) {
         this.gridManager = manager
+    }
+    
+    fun setFridgeGridManager(manager: FridgeGridManager) {
+        this.fridgeGridManager = manager
     }
 
     fun setSelectionManager(manager: SelectionUtils.SelectionManager<Int>) {
@@ -46,7 +52,6 @@ class BurgerRenderer(
                 RelativeLayout(activity).apply {
                     layoutParams = FrameLayout.LayoutParams(150, 180)
                     tag = burgerId
-                    // We no longer need to set the grid_index_tag
                     // Save the burger's numeric value for later interactions
                     setTag(R.id.burger_value, burgerValue)
                     elevation = BurgerConstants.BURGER_ELEVATION
@@ -154,8 +159,9 @@ class BurgerRenderer(
             val burgerId = view.tag as? Int ?: continue
 
             if (expiredBurgerIds.contains(burgerId)) {
-                // Remove from grid if it's still there
+                // Remove from both grids if it's still there
                 gridManager?.removeBurgerFromGrid(burgerId)
+                fridgeGridManager?.removeBurgerFromGrid(burgerId)
 
                 val transferred = view.getTag(R.id.burger_transferred) as? Boolean ?: false
                 val burgerValue = view.getTag(R.id.burger_value) as? Int ?: 0

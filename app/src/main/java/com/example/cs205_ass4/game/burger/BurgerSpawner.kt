@@ -51,7 +51,7 @@ class BurgerSpawner(
         if (gridPosition != null) {
             // Register this burger in the grid occupancy array
             gridManager.assignBurgerToGridSlot(burgerId, gridIndex)
-            
+
             // Create the burger view without using the grid_index_tag
             burgerRenderer.spawnBurgerView(burgerId, burgerValue, gridPosition, gridIndex)
         } else {

@@ -10,6 +10,7 @@ import com.example.cs205_ass4.game.burger.BurgerLayeringManager
 import com.example.cs205_ass4.game.burger.BurgerRenderer
 import com.example.cs205_ass4.game.chef.ChefRenderer
 import com.example.cs205_ass4.game.chef.ChefState
+import com.example.cs205_ass4.game.kitchen.FridgeGridManager
 import com.example.cs205_ass4.game.kitchen.GridManager
 import com.example.cs205_ass4.game.kitchen.GrillManager
 import com.example.cs205_ass4.utils.SelectionUtils
@@ -22,14 +23,19 @@ class BurgerInteractionHandler(
         private val grillManager: GrillManager,
         private val burgerLayeringManager: BurgerLayeringManager,
         private val fridge: View,
-        private val gridManager: GridManager
+        private val gridManager: GridManager,
+        private val fridgeGridManager: FridgeGridManager
 ) {
     val selectionManager: SelectionUtils.SelectionManager<Int> = createSelectionManager()
 
     private fun createSelectionManager(): SelectionUtils.SelectionManager<Int> {
         return SelectionUtils.SelectionManager(
                 onTargetInteraction = { burgerId, targetView ->
-                    handleBurgerChefInteraction(burgerId, targetView)
+                    if (targetView == fridge) {
+                        handleFridgeInteraction(burgerId)
+                    } else {
+                        handleChefInteraction(burgerId, targetView)
+                    }
                 }
         )
     }
@@ -62,26 +68,36 @@ class BurgerInteractionHandler(
         chefRenderer.setSelectionManager(selectionManager)
     }
 
-    private fun handleBurgerChefInteraction(burgerId: Int, targetView: View) {
-        if (targetView == fridge) {
-            handleFridgeInteraction(burgerId)
-        } else {
-            handleChefInteraction(burgerId, targetView)
-        }
-    }
-
     private fun handleFridgeInteraction(burgerId: Int) {
         val burgerWrapper =
                 burgerContainer.findViewWithTag<View>(burgerId) as? RelativeLayout ?: return
 
-        // Remove burger from grid tracking
+        // Remove burger from kitchen grid
         gridManager.removeBurgerFromGrid(burgerId)
-
-        // Move burger to the bottom area
-        val bottomY = burgerContainer.height - 180f
-        val xPos = 20f + (burgerContainer.childCount * 160f) % (burgerContainer.width - 160f)
-
-        burgerRenderer.moveBurgerToPosition(burgerWrapper, xPos, bottomY)
+        
+        // Check if there's space in the fridge grid
+        if (!fridgeGridManager.hasFreeSpace()) {
+            // No space in fridge, don't allow interaction
+            return
+        }
+        
+        // Find the first empty grid in the fridge
+        val gridIndex = fridgeGridManager.findFirstEmptyGridIndex()
+        val gridPosition = fridgeGridManager.getPositionForIndex(gridIndex) ?: return
+        
+        // Assign burger to fridge grid
+        fridgeGridManager.assignBurgerToGridSlot(burgerId, gridIndex)
+        
+        // Move burger to the fridge grid position
+        val burgerWidth = 100  // Adjust as needed based on your burger view size
+        val burgerHeight = 100
+        burgerRenderer.moveBurgerToPosition(
+            burgerWrapper, 
+            gridPosition.x - burgerWidth / 2, 
+            gridPosition.y - burgerHeight / 2
+        )
+        
+        // Mark the burger as transferred
         burgerRenderer.markBurgerTransferred(burgerId, true)
     }
 
@@ -99,9 +115,10 @@ class BurgerInteractionHandler(
 
         // Check if we have enough grill capacity
         if (grillManager.canCookBurger(burgerValue)) {
-            // Remove burger from grid (since it's being moved to a chef)
+            // Remove burger from grid (it could be in kitchen grid or fridge grid)
             gridManager.removeBurgerFromGrid(burgerId)
-
+            fridgeGridManager.removeBurgerFromGrid(burgerId)
+            
             // Consume grill capacity
             grillManager.consumeGrillCapacity(burgerValue)
 
