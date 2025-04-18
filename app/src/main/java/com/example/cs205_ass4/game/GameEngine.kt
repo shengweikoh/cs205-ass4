@@ -75,7 +75,9 @@ class GameEngine {
         handler.postDelayed(
                 {
                     updateGame()
-                    scheduleUpdate() // Schedule the next update
+                    if (!gamePaused) {
+                        scheduleUpdate() // Schedule the next update only if game is not paused
+                    }
                 },
                 GAME_ENGINE_UPDATE_INTERVAL
         )
@@ -83,9 +85,11 @@ class GameEngine {
 
     // Called on each game tick/update
     fun updateGame() {
-        chefManager.updateChefs() // Update chef states, positions, etc.
+        if (!gamePaused) {
+            chefManager.updateChefs() // Update chef states, positions, etc.
 
-        // Additional game logic (e.g., collision detection, scoring) goes here
+            // Additional game logic (e.g., collision detection, scoring) goes here
+        }
     }
 
     // Register for burger expiration callbacks
@@ -153,5 +157,26 @@ class GameEngine {
         // Stop the kitchen manager
         kitchenManager.stop()
         // there's no need to stop burger and chef managers as they do not start any threads
+    }
+
+    // Tracks whether the game is currently paused
+    private var gamePaused = false
+
+    /** Pauses the game logic and updates */
+    fun pauseGame() {
+        gamePaused = true
+        // Remove pending update callbacks
+        handler.removeCallbacksAndMessages(null)
+        // We could also pause chef animations and other game elements here
+    }
+
+    /** Resumes the game logic and updates after being paused */
+    fun resumeGame() {
+        if (gamePaused) {
+            gamePaused = false
+            // Restart the game update loop
+            scheduleUpdate()
+            // We could also resume chef animations and other game elements here
+        }
     }
 }

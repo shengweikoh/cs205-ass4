@@ -1,6 +1,7 @@
 package com.example.cs205_ass4.game.ui
 
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.RelativeLayout
@@ -14,6 +15,7 @@ import com.example.cs205_ass4.game.chef.ChefState
 import com.example.cs205_ass4.game.kitchen.FridgeGridManager
 import com.example.cs205_ass4.game.kitchen.GridManager
 import com.example.cs205_ass4.game.kitchen.GrillManager
+import com.example.cs205_ass4.utils.IOSimulator
 import com.example.cs205_ass4.utils.SelectionUtils
 
 class BurgerInteractionHandler(
@@ -37,12 +39,18 @@ class BurgerInteractionHandler(
     // Set to track burger IDs that are in the fridge
     private val burgersInFridge = mutableSetOf<Int>()
 
+    // IOSimulator for disk operations
+    private val ioSimulator =
+            IOSimulator(burgerContainer.context, burgerContainer.rootView as ViewGroup)
+
     private fun createKitchenSelectionManager(): SelectionUtils.SelectionManager<Int> {
         return SelectionUtils.SelectionManager(
                 onTargetInteraction = { burgerId, targetView ->
                     if (targetView == fridge) {
                         // Moving a burger from kitchen to fridge
-                        handleFridgeInteraction(burgerId)
+                        simulateDiskOperation("Writing burger to disk...", true) {
+                            handleFridgeInteraction(burgerId)
+                        }
                     } else {
                         // Moving a burger from kitchen to chef
                         handleChefInteraction(burgerId, targetView)
@@ -56,7 +64,9 @@ class BurgerInteractionHandler(
                 onTargetInteraction = { burgerId, targetView ->
                     if (targetView == kitchenCounter) {
                         // Moving a burger from fridge back to kitchen grid
-                        handleKitchenGridInteraction(burgerId)
+                        simulateDiskOperation("Reading burger from disk...", true) {
+                            handleKitchenGridInteraction(burgerId)
+                        }
                     } else if (targetView != fridge) {
                         // Attempted to move a burger from fridge to chef - not allowed
                         Toast.makeText(
@@ -67,6 +77,46 @@ class BurgerInteractionHandler(
                                 .show()
                     }
                     // We don't handle moving from fridge to fridge - it's already there
+                }
+        )
+    }
+
+    /**
+     * Simulates a disk operation with visual feedback and game pause/resume
+     *
+     * @param operationName Name of the operation for the dialog
+     * @param showToast Whether to show a toast message on completion
+     * @param onComplete Action to perform after the I/O simulation
+     */
+    private fun simulateDiskOperation(
+            operationName: String,
+            showToast: Boolean = false,
+            onComplete: () -> Unit
+    ) {
+        // Pause the game during IO operation
+        gameEngine.pauseGame()
+
+        // Show the IO simulation
+        ioSimulator.simulateIO(
+                operationName = operationName,
+                durationMs = 1000,
+                onStart = null,
+                onComplete = {
+                    // Resume the game after IO operation
+                    gameEngine.resumeGame()
+
+                    // Show toast if needed
+                    if (showToast) {
+                        Toast.makeText(
+                                        burgerContainer.context,
+                                        "Disk operation completed!",
+                                        Toast.LENGTH_SHORT
+                                )
+                                .show()
+                    }
+
+                    // Perform the action
+                    onComplete()
                 }
         )
     }

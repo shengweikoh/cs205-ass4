@@ -5,10 +5,11 @@ import android.app.Activity
 import android.graphics.PointF
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.RelativeLayout
 
 class FridgeGridManager(
         private val activity: Activity,
-        private val fridgeContainer: View,
+        private val fridgeContainer: RelativeLayout,
         private val burgerContainer: FrameLayout
 ) {
     private val gridPositions = mutableListOf<PointF>()
