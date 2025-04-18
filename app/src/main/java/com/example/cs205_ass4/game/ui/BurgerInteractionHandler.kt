@@ -25,7 +25,8 @@ class BurgerInteractionHandler(
         private val burgerLayeringManager: BurgerLayeringManager,
         private val fridge: View,
         private val gridManager: GridManager,
-        private val fridgeGridManager: FridgeGridManager
+        private val fridgeGridManager: FridgeGridManager,
+        private val kitchenCounter: RelativeLayout // Add kitchen counter as parameter
 ) {
     // Two separate selection managers - one for kitchen grid burgers, one for fridge burgers
     val kitchenSelectionManager: SelectionUtils.SelectionManager<Int> =
@@ -53,7 +54,10 @@ class BurgerInteractionHandler(
     private fun createFridgeSelectionManager(): SelectionUtils.SelectionManager<Int> {
         return SelectionUtils.SelectionManager(
                 onTargetInteraction = { burgerId, targetView ->
-                    if (targetView != fridge) {
+                    if (targetView == kitchenCounter) {
+                        // Moving a burger from fridge back to kitchen grid
+                        handleKitchenGridInteraction(burgerId)
+                    } else if (targetView != fridge) {
                         // Attempted to move a burger from fridge to chef - not allowed
                         Toast.makeText(
                                         burgerContainer.context,
@@ -70,6 +74,9 @@ class BurgerInteractionHandler(
     fun setup() {
         // Register the fridge as an interaction target for BOTH selection managers
         kitchenSelectionManager.registerInteractionTarget(fridge)
+
+        // Register the kitchen counter as an interaction target for the fridge selection manager
+        fridgeSelectionManager.registerInteractionTarget(kitchenCounter)
 
         // Register chef targets only for the kitchen selection manager
         chefRenderer.setSelectionManager(kitchenSelectionManager)
@@ -139,6 +146,47 @@ class BurgerInteractionHandler(
 
         // Mark the burger as transferred
         burgerRenderer.markBurgerTransferred(burgerId, true)
+    }
+
+    private fun handleKitchenGridInteraction(burgerId: Int) {
+        val burgerWrapper =
+                burgerContainer.findViewWithTag<View>(burgerId) as? RelativeLayout ?: return
+
+        // Check if there's space in the kitchen grid
+        val gridIndex = gridManager.findFirstEmptyGridIndex(burgerContainer)
+        if (gridIndex == -1) {
+            // No space in kitchen grid, don't allow interaction
+            Toast.makeText(burgerContainer.context, "No space in kitchen grid", Toast.LENGTH_SHORT)
+                    .show()
+            return
+        }
+
+        // Get the position for the kitchen grid slot
+        val gridPosition =
+                gridManager.getPositionForIndex(gridIndex, burgerContainer.childCount) ?: return
+
+        // Remove from fridge grid and tracking
+        fridgeGridManager.removeBurgerFromGrid(burgerId)
+        burgersInFridge.remove(burgerId)
+
+        // Assign to kitchen grid
+        gridManager.assignBurgerToGridSlot(burgerId, gridIndex)
+
+        // Move burger to the kitchen grid position
+        val burgerWidth = 150
+        val burgerHeight = 100
+        burgerRenderer.moveBurgerToPosition(
+                burgerWrapper,
+                gridPosition.x - burgerWidth / 2,
+                gridPosition.y - burgerHeight / 2
+        )
+
+        // Switch the burger to use the kitchen selection manager
+        fridgeSelectionManager.unregisterSelectableItem(burgerWrapper)
+        kitchenSelectionManager.registerSelectableItem(burgerWrapper, burgerId)
+
+        // Mark the burger as not transferred (it's back in the kitchen grid)
+        burgerRenderer.markBurgerTransferred(burgerId, false)
     }
 
     private fun handleChefInteraction(burgerId: Int, targetView: View) {
