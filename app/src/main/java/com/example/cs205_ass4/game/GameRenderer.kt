@@ -8,7 +8,6 @@ import android.widget.FrameLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
 import com.example.cs205_ass4.R
-import com.example.cs205_ass4.game.GameEngine
 import com.example.cs205_ass4.game.burger.BurgerLayeringManager
 import com.example.cs205_ass4.game.burger.BurgerRenderer
 import com.example.cs205_ass4.game.burger.BurgerSpawner
@@ -494,6 +493,10 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         grillManager = GrillManager(grillCapacityTextView)
         burgerLayeringManager = BurgerLayeringManager(gameEngine)
 
+        // Set the GridManager on BurgerRenderer and BurgerLayeringManager
+        burgerRenderer.setGridManager(gridManager)
+        burgerLayeringManager.setGridManager(gridManager)
+
         // Initialize interaction handler
         burgerInteractionHandler =
                 BurgerInteractionHandler(
@@ -503,7 +506,8 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
                         chefRenderer,
                         grillManager,
                         burgerLayeringManager,
-                        fridge
+                        fridge,
+                        gridManager
                 )
 
         // Setup the interaction handler

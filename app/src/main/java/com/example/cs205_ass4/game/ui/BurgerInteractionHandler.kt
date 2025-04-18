@@ -10,6 +10,7 @@ import com.example.cs205_ass4.game.burger.BurgerLayeringManager
 import com.example.cs205_ass4.game.burger.BurgerRenderer
 import com.example.cs205_ass4.game.chef.ChefRenderer
 import com.example.cs205_ass4.game.chef.ChefState
+import com.example.cs205_ass4.game.kitchen.GridManager
 import com.example.cs205_ass4.game.kitchen.GrillManager
 import com.example.cs205_ass4.utils.SelectionUtils
 
@@ -20,7 +21,8 @@ class BurgerInteractionHandler(
         private val chefRenderer: ChefRenderer,
         private val grillManager: GrillManager,
         private val burgerLayeringManager: BurgerLayeringManager,
-        private val fridge: View
+        private val fridge: View,
+        private val gridManager: GridManager
 ) {
     val selectionManager: SelectionUtils.SelectionManager<Int> = createSelectionManager()
 
@@ -72,6 +74,9 @@ class BurgerInteractionHandler(
         val burgerWrapper =
                 burgerContainer.findViewWithTag<View>(burgerId) as? RelativeLayout ?: return
 
+        // Remove burger from grid tracking
+        gridManager.removeBurgerFromGrid(burgerId)
+
         // Move burger to the bottom area
         val bottomY = burgerContainer.height - 180f
         val xPos = 20f + (burgerContainer.childCount * 160f) % (burgerContainer.width - 160f)
@@ -94,6 +99,9 @@ class BurgerInteractionHandler(
 
         // Check if we have enough grill capacity
         if (grillManager.canCookBurger(burgerValue)) {
+            // Remove burger from grid (since it's being moved to a chef)
+            gridManager.removeBurgerFromGrid(burgerId)
+
             // Consume grill capacity
             grillManager.consumeGrillCapacity(burgerValue)
 

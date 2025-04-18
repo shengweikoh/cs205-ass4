@@ -6,7 +6,6 @@ import android.graphics.PointF
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.RelativeLayout
-import com.example.cs205_ass4.R
 
 class GridManager(
         private val activity: Activity,
@@ -15,6 +14,7 @@ class GridManager(
 ) {
     private val gridPositions = mutableListOf<PointF>()
     private val maxGridSlots = KitchenConstants.MAX_ORDERS
+    private val gridOccupancy = Array<Int?>(maxGridSlots) { null }
 
     private var onGridSetupComplete: (() -> Unit)? = null
     private var onBurgerLost: (() -> Unit)? = null
@@ -22,7 +22,7 @@ class GridManager(
     fun setOnGridSetupCompleteListener(listener: () -> Unit) {
         onGridSetupComplete = listener
     }
-    
+
     fun setOnBurgerLostListener(listener: () -> Unit) {
         onBurgerLost = listener
     }
@@ -61,13 +61,20 @@ class GridManager(
     }
 
     fun findFirstEmptyGridIndex(burgerContainer: FrameLayout): Int {
-        val usedIndices = mutableSetOf<Int>()
-        for (i in 0 until burgerContainer.childCount) {
-            val view = burgerContainer.getChildAt(i)
-            val idx = view.getTag(R.id.grid_index_tag) as? Int
-            if (idx != null) usedIndices.add(idx)
+        return gridOccupancy.indexOfFirst { it == null }
+    }
+
+    fun assignBurgerToGridSlot(burgerId: Int, gridIndex: Int) {
+        if (gridIndex >= 0 && gridIndex < maxGridSlots) {
+            gridOccupancy[gridIndex] = burgerId
         }
-        return (0 until maxGridSlots).firstOrNull { it !in usedIndices } ?: -1
+    }
+
+    fun removeBurgerFromGrid(burgerId: Int) {
+        val index = gridOccupancy.indexOfFirst { it == burgerId }
+        if (index >= 0) {
+            gridOccupancy[index] = null
+        }
     }
 
     fun getPositionForIndex(gridIndex: Int, childCount: Int): PointF? {

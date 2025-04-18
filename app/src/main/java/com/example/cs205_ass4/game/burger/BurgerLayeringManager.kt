@@ -7,8 +7,12 @@ import android.widget.RelativeLayout
 import com.example.cs205_ass4.R
 import com.example.cs205_ass4.game.GameEngine
 import com.example.cs205_ass4.game.chef.ChefState
+import com.example.cs205_ass4.game.kitchen.GridManager
 
-class BurgerLayeringManager(private val gameEngine: GameEngine) {
+class BurgerLayeringManager(
+        private val gameEngine: GameEngine,
+        private var gridManager: GridManager? = null
+) {
 
     interface LayeringListener {
         fun onLayeringComplete(burgerId: Int, chefId: Int, burgerValue: Int, transferred: Boolean)
@@ -16,16 +20,22 @@ class BurgerLayeringManager(private val gameEngine: GameEngine) {
 
     private var layeringListener: LayeringListener? = null
 
+    fun setGridManager(manager: GridManager) {
+        this.gridManager = manager
+    }
+
     fun setLayeringListener(listener: LayeringListener) {
-        this.layeringListener = listener
+        layeringListener = listener
     }
 
     fun startBurgerLayering(burgerWrapper: RelativeLayout, chefId: Int) {
         // Retrieve the burger image from the burgerWrapper
         val burgerView = burgerWrapper.getChildAt(0) as? ImageView ?: return
 
+        // Get the burger ID
+        val burgerId = burgerWrapper.tag as? Int ?: return
+
         // Define the layering sequence
-        // Note: burger_bottom is initially set in spawnBurgerView, so we start layering from bottom
         val layeringSequence =
                 listOf(
                         R.drawable.burger_order,
@@ -53,7 +63,7 @@ class BurgerLayeringManager(private val gameEngine: GameEngine) {
                             // burger
                             layeringHandler.postDelayed(
                                     {
-                                        // reset chef to idle
+                                        // Reset chef to idle
                                         gameEngine.setChefState(chefId, ChefState.IDLE)
 
                                         // Before removal, check if this burger was transferred
@@ -63,10 +73,11 @@ class BurgerLayeringManager(private val gameEngine: GameEngine) {
                                                         ?: false
                                         val burgerValue =
                                                 burgerWrapper.getTag(R.id.burger_value) as? Int ?: 0
-                                        val burgerId =
-                                                burgerWrapper.tag as? Int ?: return@postDelayed
 
-                                        // Notify listener of completion
+                                        // Make sure to remove from grid if still there
+                                        gridManager?.removeBurgerFromGrid(burgerId)
+
+                                        // Notify the layering listener
                                         layeringListener?.onLayeringComplete(
                                                 burgerId,
                                                 chefId,

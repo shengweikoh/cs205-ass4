@@ -49,6 +49,10 @@ class BurgerSpawner(
 
         // Create the burger UI only if we have a valid position
         if (gridPosition != null) {
+            // Register this burger in the grid occupancy array
+            gridManager.assignBurgerToGridSlot(burgerId, gridIndex)
+            
+            // Create the burger view without using the grid_index_tag
             burgerRenderer.spawnBurgerView(burgerId, burgerValue, gridPosition, gridIndex)
         } else {
             // If no position is available, the burger is lost but the callback
