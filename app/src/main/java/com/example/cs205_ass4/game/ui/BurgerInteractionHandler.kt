@@ -27,36 +27,52 @@ class BurgerInteractionHandler(
         private val gridManager: GridManager,
         private val fridgeGridManager: FridgeGridManager
 ) {
-    val selectionManager: SelectionUtils.SelectionManager<Int> = createSelectionManager()
-    
+    // Two separate selection managers - one for kitchen grid burgers, one for fridge burgers
+    val kitchenSelectionManager: SelectionUtils.SelectionManager<Int> =
+            createKitchenSelectionManager()
+    val fridgeSelectionManager: SelectionUtils.SelectionManager<Int> =
+            createFridgeSelectionManager()
+
     // Set to track burger IDs that are in the fridge
     private val burgersInFridge = mutableSetOf<Int>()
 
-    private fun createSelectionManager(): SelectionUtils.SelectionManager<Int> {
+    private fun createKitchenSelectionManager(): SelectionUtils.SelectionManager<Int> {
         return SelectionUtils.SelectionManager(
                 onTargetInteraction = { burgerId, targetView ->
                     if (targetView == fridge) {
+                        // Moving a burger from kitchen to fridge
                         handleFridgeInteraction(burgerId)
                     } else {
-                        // Check if burger is in fridge
-                        if (burgersInFridge.contains(burgerId)) {
-                            // Show toast message that this action is not allowed
-                            Toast.makeText(
-                                burgerContainer.context,
-                                "This action not allowed as burger is in fridge (disk)",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            handleChefInteraction(burgerId, targetView)
-                        }
+                        // Moving a burger from kitchen to chef
+                        handleChefInteraction(burgerId, targetView)
                     }
                 }
         )
     }
 
+    private fun createFridgeSelectionManager(): SelectionUtils.SelectionManager<Int> {
+        return SelectionUtils.SelectionManager(
+                onTargetInteraction = { burgerId, targetView ->
+                    if (targetView != fridge) {
+                        // Attempted to move a burger from fridge to chef - not allowed
+                        Toast.makeText(
+                                        burgerContainer.context,
+                                        "This action not allowed as burger is in fridge (disk)",
+                                        Toast.LENGTH_SHORT
+                                )
+                                .show()
+                    }
+                    // We don't handle moving from fridge to fridge - it's already there
+                }
+        )
+    }
+
     fun setup() {
-        // Register the fridge as an interaction target
-        selectionManager.registerInteractionTarget(fridge)
+        // Register the fridge as an interaction target for BOTH selection managers
+        kitchenSelectionManager.registerInteractionTarget(fridge)
+
+        // Register chef targets only for the kitchen selection manager
+        chefRenderer.setSelectionManager(kitchenSelectionManager)
 
         // Set up the burger layering manager listener
         burgerLayeringManager.setLayeringListener(
@@ -70,10 +86,10 @@ class BurgerInteractionHandler(
                         if (transferred) {
                             grillManager.releaseGrillCapacity(burgerValue)
                         }
-                        
+
                         // Remove from fridge tracking if it was there
                         burgersInFridge.remove(burgerId)
-                        
+
                         burgerContainer.findViewWithTag<View>(burgerId)?.let { view ->
                             burgerContainer.removeView(view)
                         }
@@ -81,9 +97,8 @@ class BurgerInteractionHandler(
                 }
         )
 
-        // Pass the selection manager to the burger renderer and chef renderer
-        burgerRenderer.setSelectionManager(selectionManager)
-        chefRenderer.setSelectionManager(selectionManager)
+        // Set the kitchen selection manager as the default for new burgers
+        burgerRenderer.setDefaultSelectionManager(kitchenSelectionManager)
     }
 
     private fun handleFridgeInteraction(burgerId: Int) {
@@ -92,32 +107,36 @@ class BurgerInteractionHandler(
 
         // Remove burger from kitchen grid
         gridManager.removeBurgerFromGrid(burgerId)
-        
+
         // Check if there's space in the fridge grid
         if (!fridgeGridManager.hasFreeSpace()) {
             // No space in fridge, don't allow interaction
             return
         }
-        
+
         // Find the first empty grid in the fridge
         val gridIndex = fridgeGridManager.findFirstEmptyGridIndex()
         val gridPosition = fridgeGridManager.getPositionForIndex(gridIndex) ?: return
-        
+
         // Assign burger to fridge grid
         fridgeGridManager.assignBurgerToGridSlot(burgerId, gridIndex)
-        
+
         // Add to tracking set of burgers in fridge
         burgersInFridge.add(burgerId)
-        
+
         // Move burger to the fridge grid position
         val burgerWidth = 150 // might need to adjust further
         val burgerHeight = 100
         burgerRenderer.moveBurgerToPosition(
-            burgerWrapper, 
-            gridPosition.x - burgerWidth / 2, 
-            gridPosition.y - burgerHeight / 2
+                burgerWrapper,
+                gridPosition.x - burgerWidth / 2,
+                gridPosition.y - burgerHeight / 2
         )
-        
+
+        // Switch the burger to use the fridge selection manager
+        kitchenSelectionManager.unregisterSelectableItem(burgerWrapper)
+        fridgeSelectionManager.registerSelectableItem(burgerWrapper, burgerId)
+
         // Mark the burger as transferred
         burgerRenderer.markBurgerTransferred(burgerId, true)
     }
@@ -139,10 +158,14 @@ class BurgerInteractionHandler(
             // Remove burger from grid (it could be in kitchen grid or fridge grid)
             gridManager.removeBurgerFromGrid(burgerId)
             fridgeGridManager.removeBurgerFromGrid(burgerId)
-            
+
             // Remove from tracking set if it was in fridge
             burgersInFridge.remove(burgerId)
-            
+
+            // Unregister from both selection managers to be safe
+            kitchenSelectionManager.unregisterSelectableItem(burgerWrapper)
+            fridgeSelectionManager.unregisterSelectableItem(burgerWrapper)
+
             // Consume grill capacity
             grillManager.consumeGrillCapacity(burgerValue)
 
@@ -191,7 +214,8 @@ class BurgerInteractionHandler(
     }
 
     fun cleanup() {
-        selectionManager.cleanup()
+        kitchenSelectionManager.cleanup()
+        fridgeSelectionManager.cleanup()
         burgersInFridge.clear()
     }
 }

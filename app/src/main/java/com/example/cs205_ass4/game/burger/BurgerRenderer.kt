@@ -31,8 +31,8 @@ class BurgerRenderer(
     // Reference to the interaction handler
     private var interactionHandler: BurgerInteractionHandler? = null
 
-    // Selection manager reference
-    private lateinit var selectionManager: SelectionUtils.SelectionManager<Int>
+    // Default selection manager for new burgers
+    private var defaultSelectionManager: SelectionUtils.SelectionManager<Int>? = null
 
     fun setInteractionHandler(handler: BurgerInteractionHandler) {
         this.interactionHandler = handler
@@ -47,7 +47,11 @@ class BurgerRenderer(
     }
 
     fun setSelectionManager(manager: SelectionUtils.SelectionManager<Int>) {
-        this.selectionManager = manager
+        this.defaultSelectionManager = manager
+    }
+
+    fun setDefaultSelectionManager(manager: SelectionUtils.SelectionManager<Int>) {
+        this.defaultSelectionManager = manager
     }
 
     fun setOnBurgerSelectedListener(listener: (burgerId: Int, burgerValue: Int) -> Unit) {
@@ -118,8 +122,8 @@ class BurgerRenderer(
         burgerWrapper.x = gridPosition.x - burgerWidth / 2
         burgerWrapper.y = gridPosition.y - burgerHeight / 2
 
-        // Register this burger with the selection manager for interaction
-        selectionManager.registerSelectableItem(burgerWrapper, burgerId)
+        // Register this burger with the default selection manager for interaction
+        defaultSelectionManager?.registerSelectableItem(burgerWrapper, burgerId)
         burgerContainer.addView(burgerWrapper)
     }
 
@@ -170,7 +174,7 @@ class BurgerRenderer(
                 // Remove from both grids if it's still there
                 gridManager?.removeBurgerFromGrid(burgerId)
                 fridgeGridManager?.removeBurgerFromGrid(burgerId)
-                
+
                 // Also notify the interaction handler to clear from fridge tracking
                 interactionHandler?.clearFromFridge(burgerId)
 
