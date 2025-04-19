@@ -108,12 +108,6 @@ object SelectionUtils {
             onItemDeselected?.invoke()
         }
 
-        /** Get the currently selected item data */
-        fun getSelectedItem(): T? = selectedItem
-
-        /** Get the currently selected view */
-        fun getSelectedView(): View? = selectedView
-
         /** Remove a selectable item from the manager */
         fun unregisterSelectableItem(view: View) {
             if (view == selectedView) {

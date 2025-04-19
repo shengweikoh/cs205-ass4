@@ -8,19 +8,8 @@ class BurgerManager {
         burgers[id] = burger
     }
 
-    fun getBurgerById(id: Int): Burger? {
-        return burgers[id]
-    }
-
-    fun getAllBurgers(): List<Burger> {
-        return burgers.values.toList()
-    }
-
     fun removeBurger(id: Int) {
         burgers.remove(id)
     }
 
-    fun getAllBurgerIds(): List<Int> {
-        return burgers.map { it.key }
-    }
 }

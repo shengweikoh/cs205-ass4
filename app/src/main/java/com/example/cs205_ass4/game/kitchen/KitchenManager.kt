@@ -34,18 +34,6 @@ class KitchenManager {
         return kitchenCounter.addFood(food)
     }
 
-    fun getAllFood(): List<Expirable> {
-        return kitchenCounter.getAllFood()
-    }
-
-    fun getBurgers(): List<Burger> {
-        return kitchenCounter.getAllFood().filterIsInstance<Burger>()
-    }
-
-    fun removeFood(food: Expirable): Boolean {
-        return kitchenCounter.removeFood(food)
-    }
-
     fun setOnBurgerExpiredCallback(callback: (List<Int>) -> Unit) {
         onBurgerExpiredCallback = callback
     }
@@ -67,16 +55,3 @@ class KitchenManager {
 
 }
 
-//    fun getOrders(): List<Order> {
-//        return kitchen.kitchenCounter.getOrders()
-//    }
-
-//    // in KitchenManager.kt, below getOrders()
-//    fun removeOrder(orderId: Int): Boolean {
-//        return kitchen.removeOrder(orderId)
-//    }
-
-//    fun setOnOrdersExpiredCallback(callback: (List<Int>) -> Unit) {
-//        onOrdersExpiredCallback = callback
-//        kitchen.kitchenCounter.setOnOrdersExpiredCallback(callback)
-//    }

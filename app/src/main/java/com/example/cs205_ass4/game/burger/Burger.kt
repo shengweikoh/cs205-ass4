@@ -9,9 +9,6 @@ data class Burger(
     override val decayDurationSec: Int = BurgerConstants.DEFAULT_BURGER_EXPIRATION_TIME_SEC,
     override var freshnessPercentage: Float = 1.0f
 ) : Expirable {
-    fun cook(increment: Float) {
-        percentOfBurgerCooked = (percentOfBurgerCooked + increment).coerceAtMost(1.0f)
-    }
 
     override fun isExpired(): Boolean {
         return System.currentTimeMillis() - burgerCreationTimestamp > decayDurationSec * 1000

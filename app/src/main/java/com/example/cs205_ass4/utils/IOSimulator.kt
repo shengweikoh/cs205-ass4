@@ -266,7 +266,7 @@ class IOSimulator(private val context: Context, private val rootView: ViewGroup)
         fun startAnimation() {
             // Create initial particles
             createParticles(25)
-            
+
             // Start animation loop
             animating = true
             updateHandler.post(animationRunnable)
@@ -280,15 +280,17 @@ class IOSimulator(private val context: Context, private val rootView: ViewGroup)
         private fun createParticles(count: Int) {
             particles.clear()
             for (i in 0 until count) {
-                particles.add(Particle(
-                    x = random.nextFloat() * width,
-                    y = random.nextFloat() * height,
-                    radius = 12f + random.nextFloat() * 18f,
-                    speedX = -2f + random.nextFloat() * 4f,
-                    speedY = -2f + random.nextFloat() * 4f,
-                    alpha = 180 + random.nextInt(75),
-                    color = getRandomDataColor()
-                ))
+                particles.add(
+                        Particle(
+                                x = random.nextFloat() * width,
+                                y = random.nextFloat() * height,
+                                radius = 12f + random.nextFloat() * 18f,
+                                speedX = -2f + random.nextFloat() * 4f,
+                                speedY = -2f + random.nextFloat() * 4f,
+                                alpha = 180 + random.nextInt(75),
+                                color = getRandomDataColor()
+                        )
+                )
             }
         }
 
@@ -337,43 +339,56 @@ class IOSimulator(private val context: Context, private val rootView: ViewGroup)
             super.onSizeChanged(w, h, oldw, oldh)
             // Create particles based on new size
             if (particles.isEmpty()) {
-                createParticles(25) 
+                createParticles(25)
             }
         }
 
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
-            
+
             // Draw semi-transparent background
             canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), backgroundPaint)
-            
+
             // Draw animated gradient
-            val gradient = LinearGradient(
-                0f, gradientYOffset - height, width.toFloat(), gradientYOffset,
-                gradientColors, null, Shader.TileMode.MIRROR
-            )
+            val gradient =
+                    LinearGradient(
+                            0f,
+                            gradientYOffset - height,
+                            width.toFloat(),
+                            gradientYOffset,
+                            gradientColors,
+                            null,
+                            Shader.TileMode.MIRROR
+                    )
             gradientPaint.shader = gradient
             canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), gradientPaint)
-            
+
             // Draw particles
             for (particle in particles) {
                 // Draw glow effect (larger circle with lower opacity)
                 particlePaint.color = particle.color
                 particlePaint.alpha = particle.alpha / 3
                 canvas.drawCircle(particle.x, particle.y, particle.radius * 1.8f, particlePaint)
-                
+
                 // Draw the main particle
                 particlePaint.color = particle.color
                 particlePaint.alpha = particle.alpha
                 canvas.drawCircle(particle.x, particle.y, particle.radius, particlePaint)
-                
+
                 // Draw "data trail" lines between particles
                 if (random.nextFloat() < 0.3f) { // Increased chance for connections
-                    val nearestParticle = findNearestParticle(particle, 400f) // Increased connection range
+                    val nearestParticle =
+                            findNearestParticle(particle, 400f) // Increased connection range
                     if (nearestParticle != null) {
                         particlePaint.alpha = 100
                         particlePaint.strokeWidth = 4f
-                        canvas.drawLine(particle.x, particle.y, nearestParticle.x, nearestParticle.y, particlePaint)
+                        canvas.drawLine(
+                                particle.x,
+                                particle.y,
+                                nearestParticle.x,
+                                nearestParticle.y,
+                                particlePaint
+                        )
                     }
                 }
             }

@@ -155,11 +155,6 @@ class GameRenderer(private val activity: Activity, private val gameEngine: GameE
         }
     }
 
-    fun stopDecayUpdates() {
-        // This method is kept for backward compatibility but doesn't do anything now
-        // Decay updates are managed by KitchenCounter
-    }
-
     fun cleanup() {
         burgerSpawner.stopSpawning()
         // Removed stopDecayUpdates call

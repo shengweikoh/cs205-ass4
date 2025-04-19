@@ -31,7 +31,4 @@ class GrillManager(private val grillCapacityTextView: TextView) {
         "Capacity: $grillCount".also { grillCapacityTextView.text = it }
     }
 
-    fun getCurrentCapacity(): Int {
-        return grillCount
-    }
 }

@@ -19,10 +19,6 @@ class FridgeGridManager(
 
     private var onGridSetupComplete: (() -> Unit)? = null
 
-    fun setOnGridSetupCompleteListener(listener: () -> Unit) {
-        onGridSetupComplete = listener
-    }
-
     @SuppressLint("DiscouragedApi")
     fun setupGridPositions() {
         gridPositions.clear()

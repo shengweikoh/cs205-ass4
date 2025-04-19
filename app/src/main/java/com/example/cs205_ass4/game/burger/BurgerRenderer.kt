@@ -142,25 +142,6 @@ class BurgerRenderer(
         }
     }
 
-    fun updateDecay(burgerIdToFreshness: Map<Int, Float>) {
-        for ((burgerId, freshness) in burgerIdToFreshness) {
-            val decayBar = mapProgressBar[burgerId] ?: continue
-            val progress = (freshness * 100).toInt()
-            decayBar.progress = progress
-            decayBar.progressDrawable?.setTint(
-                    when {
-                        freshness > 0.7f -> Color.GREEN
-                        freshness > 0.3f -> "#FFA500".toColorInt()
-                        else -> Color.RED
-                    }
-            )
-        }
-    }
-
-    fun getBurgerView(burgerId: Int): View? {
-        return burgerContainer.findViewWithTag(burgerId)
-    }
-
     fun removeExpiredBurgerViews(
             expiredBurgerIds: List<Int>,
             onRemoveBurger: (Int, Boolean) -> Unit
@@ -203,8 +184,4 @@ class BurgerRenderer(
         burgerView?.setTag(R.id.burger_transferred, transferred)
     }
 
-    fun cleanup() {
-        mapProgressBar.clear()
-        burgerContainer.removeAllViews()
-    }
 }
