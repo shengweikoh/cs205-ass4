@@ -1,17 +1,35 @@
 package com.example.cs205_ass4.utils
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.app.AlertDialog
 import android.content.Context
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.LinearGradient
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.Shader
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.Animation
+import android.view.animation.ScaleAnimation
 import android.widget.FrameLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
+import java.util.Random
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * Utility class to simulate IO operations with visual feedback Shows a popup dialog and greys out
@@ -19,8 +37,10 @@ import android.widget.TextView
  */
 class IOSimulator(private val context: Context, private val rootView: ViewGroup) {
     private val handler = Handler(Looper.getMainLooper())
-    private var overlay: FrameLayout? = null
+    private var overlay: AnimatedOverlayView? = null
     private var dialog: AlertDialog? = null
+    private var dialogView: View? = null
+    private var pulsatingAnimator: ValueAnimator? = null
 
     /**
      * Simulates an IO operation with visual feedback
@@ -36,10 +56,10 @@ class IOSimulator(private val context: Context, private val rootView: ViewGroup)
             onStart: (() -> Unit)? = null,
             onComplete: (() -> Unit)? = null
     ) {
-        // Create and show the grey overlay
+        // Create and show the animated overlay
         showOverlay()
 
-        // Show the dialog
+        // Show the dialog with pulsating animation
         showDialog(operationName)
 
         // Call the onStart callback if provided
@@ -48,12 +68,17 @@ class IOSimulator(private val context: Context, private val rootView: ViewGroup)
         // Schedule removal of overlay and dialog after the duration
         handler.postDelayed(
                 {
-                    // Remove the overlay
+                    // Remove the overlay with fade-out animation
                     removeOverlay()
+
+                    // Stop pulsating animation
+                    pulsatingAnimator?.cancel()
+                    pulsatingAnimator = null
 
                     // Dismiss the dialog
                     dialog?.dismiss()
                     dialog = null
+                    dialogView = null
 
                     // Call the onComplete callback if provided
                     onComplete?.invoke()
@@ -62,25 +87,28 @@ class IOSimulator(private val context: Context, private val rootView: ViewGroup)
         )
     }
 
-    /** Creates and shows a semi-transparent grey overlay over the screen */
+    /** Creates and shows an animated overlay with advanced 2D graphics */
     private fun showOverlay() {
         // Create a new overlay if it doesn't exist
         if (overlay == null) {
-            overlay =
-                    FrameLayout(context).apply {
-                        layoutParams =
-                                ViewGroup.LayoutParams(
-                                        ViewGroup.LayoutParams.MATCH_PARENT,
-                                        ViewGroup.LayoutParams.MATCH_PARENT
-                                )
-                        setBackgroundColor(Color.parseColor("#99000000")) // Semi-transparent grey
-                    }
+            overlay = AnimatedOverlayView(context)
         }
 
-        // Add the overlay to the root view
+        // Add the overlay to the root view with fade-in animation
         overlay?.let {
             if (it.parent == null) {
+                it.alpha = 0f
                 rootView.addView(it)
+                
+                // Fade in animation
+                it.animate()
+                    .alpha(1f)
+                    .setDuration(300)
+                    .setInterpolator(AccelerateDecelerateInterpolator())
+                    .start()
+
+                // Start the particle animation
+                it.startAnimation()
 
                 // Vibrate the device when overlay appears
                 vibrate()
@@ -121,31 +149,263 @@ class IOSimulator(private val context: Context, private val rootView: ViewGroup)
         }
     }
 
-    /** Removes the grey overlay from the screen */
+    /** Removes the overlay with animation */
     private fun removeOverlay() {
-        overlay?.let { rootView.removeView(it) }
-        overlay = null
+        overlay?.let { 
+            // Stop particle animation
+            it.stopAnimation()
+            
+            // Fade out animation
+            it.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .setInterpolator(AccelerateDecelerateInterpolator())
+                .setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        rootView.removeView(it)
+                        overlay = null
+                    }
+                })
+                .start()
+        }
     }
 
-    /** Shows a dialog with the operation message */
+    /** Shows a dialog with the operation message and pulsating animation */
     private fun showDialog(operationName: String) {
         // Create a text view for the message
         val messageView =
                 TextView(context).apply {
                     text = operationName
                     textSize = 18f
-                    setTextColor(Color.BLACK)
+                    setTextColor(Color.WHITE)
                     setPadding(32, 32, 32, 32)
                 }
 
-        // Create and show the dialog
+        // Create and show the dialog with custom style
         dialog =
-                AlertDialog.Builder(context)
+                AlertDialog.Builder(context, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                         .setTitle("I/O Operation in Progress")
                         .setView(messageView)
                         .setCancelable(false)
                         .create()
 
         dialog?.show()
+        
+        // Get the dialog's window decoration view
+        dialog?.window?.decorView?.let { decorView ->
+            dialogView = decorView
+            
+            // Apply pulsating animation to dialog
+            applyPulsatingAnimation(decorView)
+        }
     }
+    
+    /** Applies a pulsating scale animation to the dialog */
+    private fun applyPulsatingAnimation(view: View) {
+        pulsatingAnimator = ValueAnimator.ofFloat(1.0f, 1.05f).apply {
+            duration = 800
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            interpolator = AccelerateDecelerateInterpolator()
+            
+            addUpdateListener { animation ->
+                val scale = animation.animatedValue as Float
+                view.scaleX = scale
+                view.scaleY = scale
+            }
+            
+            start()
+        }
+    }
+    
+    /**
+     * Custom view that implements an animated gradient background with floating particles
+     * to simulate data flow during I/O operations
+     */
+    private inner class AnimatedOverlayView(context: Context) : View(context) {
+        private val particles = ArrayList<Particle>()
+        private val random = Random()
+        private val particlePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        private val gradientPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        private var animating = false
+        private val updateHandler = Handler(Looper.getMainLooper())
+        private val gradientColors = intArrayOf(
+            Color.parseColor("#44000080"), // Semi-transparent dark blue
+            Color.parseColor("#77003366"), // Medium transparent blue
+            Color.parseColor("#99000080")  // More opaque dark blue
+        )
+        private var gradientYOffset = 0f
+        private val backgroundPaint = Paint().apply {
+            color = Color.parseColor("#BB000000") // Semi-transparent black
+        }
+        
+        // Runnable for animation updates
+        private val animationRunnable = object : Runnable {
+            override fun run() {
+                if (animating) {
+                    updateParticles()
+                    updateGradient()
+                    invalidate()
+                    updateHandler.postDelayed(this, 16) // ~60fps
+                }
+            }
+        }
+        
+        init {
+            // Enable hardware acceleration for better performance
+            setLayerType(LAYER_TYPE_HARDWARE, null)
+            
+            // Configure the particle paint
+            particlePaint.color = Color.WHITE
+            particlePaint.alpha = 180
+            particlePaint.style = Paint.Style.FILL
+            
+            // Set up blending mode for the gradient
+            gradientPaint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SCREEN)
+        }
+        
+        fun startAnimation() {
+            // Create initial particles
+            createParticles(50)
+            
+            // Start animation loop
+            animating = true
+            updateHandler.post(animationRunnable)
+        }
+        
+        fun stopAnimation() {
+            animating = false
+            updateHandler.removeCallbacks(animationRunnable)
+        }
+        
+        private fun createParticles(count: Int) {
+            particles.clear()
+            for (i in 0 until count) {
+                particles.add(Particle(
+                    x = random.nextFloat() * width,
+                    y = random.nextFloat() * height,
+                    radius = 2f + random.nextFloat() * 4f,
+                    speedX = -2f + random.nextFloat() * 4f,
+                    speedY = -2f + random.nextFloat() * 4f,
+                    alpha = 70 + random.nextInt(100),
+                    color = getRandomDataColor()
+                ))
+            }
+        }
+        
+        private fun getRandomDataColor(): Int {
+            val colors = arrayOf(
+                Color.parseColor("#4CAF50"), // Green
+                Color.parseColor("#2196F3"), // Blue
+                Color.parseColor("#FFC107"), // Yellow
+                Color.parseColor("#F44336"), // Red
+                Color.parseColor("#9C27B0")  // Purple
+            )
+            return colors[random.nextInt(colors.size)]
+        }
+        
+        private fun updateParticles() {
+            for (particle in particles) {
+                // Update position
+                particle.x += particle.speedX
+                particle.y += particle.speedY
+                
+                // Wrap around screen bounds
+                if (particle.x < 0) particle.x = width.toFloat()
+                if (particle.x > width) particle.x = 0f
+                if (particle.y < 0) particle.y = height.toFloat()
+                if (particle.y > height) particle.y = 0f
+                
+                // Randomly change direction occasionally
+                if (random.nextFloat() < 0.01f) {
+                    particle.speedX = -2f + random.nextFloat() * 4f
+                    particle.speedY = -2f + random.nextFloat() * 4f
+                }
+            }
+        }
+        
+        private fun updateGradient() {
+            // Move the gradient for flowing effect
+            gradientYOffset += 2f
+            if (gradientYOffset > height) {
+                gradientYOffset = 0f
+            }
+        }
+        
+        override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+            super.onSizeChanged(w, h, oldw, oldh)
+            // Create particles based on new size
+            if (particles.isEmpty()) {
+                createParticles(50)
+            }
+        }
+        
+        override fun onDraw(canvas: Canvas) {
+            super.onDraw(canvas)
+            
+            // Draw semi-transparent background
+            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), backgroundPaint)
+            
+            // Draw animated gradient
+            val gradient = LinearGradient(
+                0f, gradientYOffset - height, width.toFloat(), gradientYOffset,
+                gradientColors, null, Shader.TileMode.MIRROR
+            )
+            gradientPaint.shader = gradient
+            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), gradientPaint)
+            
+            // Draw particles
+            for (particle in particles) {
+                particlePaint.color = particle.color
+                particlePaint.alpha = particle.alpha
+                canvas.drawCircle(particle.x, particle.y, particle.radius, particlePaint)
+                
+                // Draw "data trail" lines between some particles
+                if (random.nextFloat() < 0.2f) {
+                    val nearestParticle = findNearestParticle(particle, 200f)
+                    if (nearestParticle != null) {
+                        particlePaint.alpha = 40 // More transparent for the lines
+                        particlePaint.strokeWidth = 1f
+                        canvas.drawLine(particle.x, particle.y, nearestParticle.x, nearestParticle.y, particlePaint)
+                    }
+                }
+            }
+        }
+        
+        private fun findNearestParticle(source: Particle, maxDistance: Float): Particle? {
+            var nearest: Particle? = null
+            var minDistance = maxDistance
+            
+            for (particle in particles) {
+                if (particle != source) {
+                    val distance = distance(source.x, source.y, particle.x, particle.y)
+                    if (distance < minDistance) {
+                        minDistance = distance
+                        nearest = particle
+                    }
+                }
+            }
+            
+            return nearest
+        }
+        
+        private fun distance(x1: Float, y1: Float, x2: Float, y2: Float): Float {
+            val dx = x2 - x1
+            val dy = y2 - y1
+            return kotlin.math.sqrt(dx * dx + dy * dy)
+        }
+    }
+    
+    /**
+     * Data class representing a particle in the animation
+     */
+    private data class Particle(
+        var x: Float,
+        var y: Float,
+        val radius: Float,
+        var speedX: Float,
+        var speedY: Float,
+        val alpha: Int,
+        val color: Int
+    )
 }
