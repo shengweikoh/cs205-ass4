@@ -93,8 +93,6 @@ class BurgerInteractionHandler(
             showToast: Boolean = false,
             onComplete: () -> Unit
     ) {
-        // Pause the game during IO operation
-        gameEngine.pauseGame()
 
         // Show the IO simulation
         ioSimulator.simulateIO(
@@ -102,9 +100,6 @@ class BurgerInteractionHandler(
                 durationMs = 1000,
                 onStart = null,
                 onComplete = {
-                    // Resume the game after IO operation
-                    gameEngine.resumeGame()
-
                     // Show toast if needed
                     if (showToast) {
                         Toast.makeText(

@@ -49,19 +49,4 @@ class ChefRenderer(private val activity: Activity) {
             chefView.setImageResource(R.drawable.chef_idle)
         }
     }
-
-    fun getChefLocation(chefId: Int): IntArray? {
-        val chefView = chefImageList.find { (it.tag as? Int) == chefId } ?: return null
-        val chefLocation = IntArray(2)
-        chefView.getLocationOnScreen(chefLocation)
-        return chefLocation
-    }
-
-    fun getChefView(chefId: Int): ImageView? {
-        return chefImageList.find { (it.tag as? Int) == chefId }
-    }
-
-    fun getAllChefs(): List<ImageView> {
-        return chefImageList
-    }
 }

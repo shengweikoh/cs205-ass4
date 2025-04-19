@@ -20,10 +20,6 @@ class GameEngine {
     var expiredBurgerCounter = 0
     var lostBurgerCounter = 0
 
-//    // Handler for the game loop and delayed tasks.
-//    private val handler = Handler(Looper.getMainLooper())
-//    private val GAME_ENGINE_UPDATE_INTERVAL = 100L // 10 updates per second
-
     // Callback for when burger views must be removed.
     private var onBurgersExpiredCallback: ((List<Int>) -> Unit)? = null
     // Callback for when burger freshness is updated
@@ -64,38 +60,6 @@ class GameEngine {
             )
         }
     }
-
-    // Called to start game loops, timers, etc.
-//    fun startGame() {
-//        // Start the game loop
-////        scheduleUpdate()
-//    }
-
-//    private fun scheduleUpdate() {
-//        handler.postDelayed(
-//                {
-//                    updateGame()
-//                    scheduleUpdate() // Always schedule the next update to keep background processes
-//                    // running
-//                },
-//                GAME_ENGINE_UPDATE_INTERVAL
-//        )
-//    }
-
-//    // Called on each game tick/update
-//    fun updateGame() {
-//        // Update the chef states only if the game is not paused
-//        if (!gamePaused) {
-//            chefManager.updateChefs() // Update chef states, positions, etc.
-//
-//            // Additional game logic (e.g., collision detection, scoring) goes here
-//        }
-//
-//        // Always run background processes regardless of pause state
-//        // (e.g., grill capacity updates, burger freshness calculations)
-//
-//        // Add any additional non-UI background updates here
-//    }
 
     // Register for burger expiration callbacks
     fun setOnBurgersExpiredCallback(callback: (List<Int>) -> Unit) {
@@ -160,21 +124,5 @@ class GameEngine {
         // handler.removeCallbacksAndMessages(null)
         kitchenManager.stop()
         // there's no need to stop burger and chef managers as they do not start any threads
-    }
-
-    // Tracks whether the game is currently paused
-    private var gamePaused = false
-
-    /** Pauses the game UI interactions without affecting background processes */
-    fun pauseGame() {
-        gamePaused = true
-        // We're only setting the flag to prevent UI interactions
-        // but we're not removing callbacks to keep background processes running
-    }
-
-    /** Resumes the game UI interactions */
-    fun resumeGame() {
-        gamePaused = false
-        // Simply restore the flag to allow UI interactions again
     }
 }

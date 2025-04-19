@@ -11,30 +11,9 @@ class ChefManager {
         return chefs.find { it.id == id }
     }
 
-    // Only assign a burger if the chef is currently idle.
-    fun assignBurgerToChef(chefId: Int, burgerId: Int) {
-        val chef = getChefById(chefId)
-        if (chef != null && chef.chefState == ChefState.IDLE) {
-            chef.chefState = ChefState.COOKING
-            chef.currentBurgerId = burgerId
-        }
-    }
-
-    // Mark the chef as finished and reset state.
-    fun finishCooking(chefId: Int) {
-        getChefById(chefId)?.let { chef ->
-            chef.chefState = ChefState.IDLE
-            chef.currentBurgerId = null
-        }
-    }
-
     fun toggleChef(chefId: Int, chefState: ChefState) {
         getChefById(chefId)?.let { chef ->
             chef.chefState = chefState
         }
-    }
-
-    fun updateChefs() {
-        // TODO: Update chef logic (e.g., animation, timing)
     }
 }

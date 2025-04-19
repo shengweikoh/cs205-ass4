@@ -29,7 +29,7 @@ class BurgerSpawner(
                     spawnBurger()
                     scheduleBurgerSpawn()
                 },
-                3000
+                2000
         )
     }
 
@@ -37,8 +37,8 @@ class BurgerSpawner(
         // Ask the game engine to create a new burger entity
         val burgerId = gameEngine.spawnBurger()
 
-        // Generate a random burger value between 1 and 5
-        val burgerValue = (1..5).random()
+        // Generate a random burger value between 3 and 5
+        val burgerValue = (2..5).random()
 
         // Find an empty grid slot to place the burger
         val gridIndex = gridManager.findFirstEmptyGridIndex(burgerContainer)

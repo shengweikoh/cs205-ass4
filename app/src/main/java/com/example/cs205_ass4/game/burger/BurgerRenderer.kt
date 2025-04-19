@@ -46,16 +46,8 @@ class BurgerRenderer(
         this.fridgeGridManager = manager
     }
 
-    fun setSelectionManager(manager: SelectionUtils.SelectionManager<Int>) {
-        this.defaultSelectionManager = manager
-    }
-
     fun setDefaultSelectionManager(manager: SelectionUtils.SelectionManager<Int>) {
         this.defaultSelectionManager = manager
-    }
-
-    fun setOnBurgerSelectedListener(listener: (burgerId: Int, burgerValue: Int) -> Unit) {
-        this.onBurgerSelected = listener
     }
 
     fun spawnBurgerView(burgerId: Int, burgerValue: Int, gridPosition: PointF, gridIndex: Int) {
@@ -157,10 +149,6 @@ class BurgerRenderer(
         }
     }
 
-    fun getBurgerView(burgerId: Int): View? {
-        return burgerContainer.findViewWithTag(burgerId)
-    }
-
     fun removeExpiredBurgerViews(
             expiredBurgerIds: List<Int>,
             onRemoveBurger: (Int, Boolean) -> Unit
@@ -201,10 +189,5 @@ class BurgerRenderer(
     fun markBurgerTransferred(burgerId: Int, transferred: Boolean) {
         val burgerView = burgerContainer.findViewWithTag<View>(burgerId)
         burgerView?.setTag(R.id.burger_transferred, transferred)
-    }
-
-    fun cleanup() {
-        mapProgressBar.clear()
-        burgerContainer.removeAllViews()
     }
 }

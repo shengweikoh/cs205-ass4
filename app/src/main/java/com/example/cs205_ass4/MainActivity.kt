@@ -48,15 +48,6 @@ class MainActivity : AppCompatActivity() {
         gameRenderer = GameRenderer(this, gameEngine)
         gameRenderer.setupUI()
     }
-    override fun onPause() {
-        super.onPause()
-        gameEngine.pauseGame()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        gameEngine.resumeGame()
-    }
 
     override fun onDestroy() {
         // Clean up resources to prevent memory leaks
