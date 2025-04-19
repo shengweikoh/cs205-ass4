@@ -3,7 +3,7 @@ package com.example.cs205_ass4.game.kitchen
 import android.widget.TextView
 
 class GrillManager(private val grillCapacityTextView: TextView) {
-    private var grillCount = 20
+    private var grillCount = 15
 
     init {
         updateGrillCapacityText()
@@ -30,5 +30,4 @@ class GrillManager(private val grillCapacityTextView: TextView) {
     private fun updateGrillCapacityText() {
         "Capacity: $grillCount".also { grillCapacityTextView.text = it }
     }
-
 }

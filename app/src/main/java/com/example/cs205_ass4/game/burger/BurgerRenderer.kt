@@ -46,16 +46,8 @@ class BurgerRenderer(
         this.fridgeGridManager = manager
     }
 
-    fun setSelectionManager(manager: SelectionUtils.SelectionManager<Int>) {
-        this.defaultSelectionManager = manager
-    }
-
     fun setDefaultSelectionManager(manager: SelectionUtils.SelectionManager<Int>) {
         this.defaultSelectionManager = manager
-    }
-
-    fun setOnBurgerSelectedListener(listener: (burgerId: Int, burgerValue: Int) -> Unit) {
-        this.onBurgerSelected = listener
     }
 
     fun spawnBurgerView(burgerId: Int, burgerValue: Int, gridPosition: PointF, gridIndex: Int) {

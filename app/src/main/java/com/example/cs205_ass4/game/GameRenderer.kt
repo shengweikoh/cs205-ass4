@@ -1,8 +1,6 @@
 package com.example.cs205_ass4.game
 
 import android.app.Activity
-import android.os.Handler
-import android.os.Looper
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.RelativeLayout

@@ -19,6 +19,7 @@ class GameEngine {
     var cookedBurgerCounter = 0
     var expiredBurgerCounter = 0
     var lostBurgerCounter = 0
+
     // Callback for when burger views must be removed.
     private var onBurgersExpiredCallback: ((List<Int>) -> Unit)? = null
     // Callback for when burger freshness is updated
@@ -123,21 +124,5 @@ class GameEngine {
         // handler.removeCallbacksAndMessages(null)
         kitchenManager.stop()
         // there's no need to stop burger and chef managers as they do not start any threads
-    }
-
-    // Tracks whether the game is currently paused
-    private var gamePaused = false
-
-    /** Pauses the game UI interactions without affecting background processes */
-    fun pauseGame() {
-        gamePaused = true
-        // We're only setting the flag to prevent UI interactions
-        // but we're not removing callbacks to keep background processes running
-    }
-
-    /** Resumes the game UI interactions */
-    fun resumeGame() {
-        gamePaused = false
-        // Simply restore the flag to allow UI interactions again
     }
 }

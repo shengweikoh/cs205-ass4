@@ -52,6 +52,4 @@ class KitchenManager {
             .find { it.id == burgerId }
         return target?.let { kitchenCounter.removeFood(it) } ?: false
     }
-
 }
-

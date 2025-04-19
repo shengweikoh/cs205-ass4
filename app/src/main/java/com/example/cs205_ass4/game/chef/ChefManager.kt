@@ -16,5 +16,4 @@ class ChefManager {
             chef.chefState = chefState
         }
     }
-
 }
